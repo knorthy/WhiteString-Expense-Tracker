@@ -2,10 +2,13 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import FaultyTerminal from '../components/FaultyTerminal'
 import claroLogo from '../assets/Claro.png'
+import { login } from '../api/auth'
+import useAuthStore from '../store/authStore'
 import './AuthPage.css'
 
 function LoginPage() {
   const navigate = useNavigate()
+  const setUser = useAuthStore((state) => state.setUser)
   const [form, setForm] = useState({ email: '', password: '' })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -19,12 +22,13 @@ function LoginPage() {
     e.preventDefault()
     setLoading(true)
     setError('')
-
     try {
-      // TODO: wire up to Laravel auth API
+      const { user, token } = await login(form)
+      localStorage.setItem('claro_token', token)
+      setUser(user)
       navigate('/dashboard')
     } catch (err) {
-      setError(err.message || 'Invalid email or password.')
+      setError(err.response?.data?.message || 'Invalid email or password.')
     } finally {
       setLoading(false)
     }

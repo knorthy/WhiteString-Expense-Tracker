@@ -1,19 +1,17 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { WALLET_OPTIONS } from '../constants/wallets'
 
 const useWalletStore = create(
   persist(
     (set) => ({
-      wallets: [
-        { id: 1, walletId: 'gcash', name: 'GCash', type: 'E-Wallet', balance: 5200.50, logo: WALLET_OPTIONS.find(w => w.id === 'gcash')?.logo },
-        { id: 2, walletId: 'bpi',   name: 'BPI',   type: 'Bank',     balance: 12000,   logo: WALLET_OPTIONS.find(w => w.id === 'bpi')?.logo },
-        { id: 3, walletId: 'maya',  name: 'Maya',  type: 'E-Wallet', balance: 1500,    logo: WALLET_OPTIONS.find(w => w.id === 'maya')?.logo },
-      ],
+      wallets: [],
+
+      // Replace entire wallet list (from API response)
+      setWallets: (wallets) => set({ wallets }),
 
       addWallet: (wallet) =>
         set((state) => ({
-          wallets: [...state.wallets, { ...wallet, id: Date.now() }],
+          wallets: [...state.wallets, wallet],
         })),
 
       updateBalance: (id, balance) =>
@@ -29,7 +27,7 @@ const useWalletStore = create(
         })),
     }),
     {
-      name: 'claro-wallets', // persisted in localStorage
+      name: 'claro-wallets',
     }
   )
 )

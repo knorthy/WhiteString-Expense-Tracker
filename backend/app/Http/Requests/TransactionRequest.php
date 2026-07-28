@@ -22,6 +22,7 @@ class TransactionRequest extends FormRequest
             'amount'      => ['required', 'numeric', 'min:0.01'],
             'description' => ['nullable', 'string', 'max:500'],
             'date'        => ['required', 'date'],
+            'wallet_id'   => ['nullable', 'integer', 'exists:wallets,id'],
         ];
     }
 

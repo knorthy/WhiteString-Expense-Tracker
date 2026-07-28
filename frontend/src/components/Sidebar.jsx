@@ -1,6 +1,8 @@
-import { Link, useLocation } from 'react-router-dom'
+import { useState, useRef, useEffect } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import claroLogo from '../assets/Claro.png'
 import useAuthStore from '../store/authStore'
+import useWalletStore from '../store/walletStore'
 import './Sidebar.css'
 
 const NAV_ITEMS = [
@@ -48,11 +50,80 @@ const NAV_ITEMS = [
   },
 ]
 
+function UserPopup({ user, totalBalance, initials, onClose }) {
+  const navigate = useNavigate()
+  const clearUser = useAuthStore((state) => state.clearUser)
+  const ref = useRef(null)
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) onClose()
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [onClose])
+
+  const handleLogout = () => {
+    clearUser()
+    navigate('/')
+    onClose()
+  }
+
+  return (
+    <div className="user-popup" ref={ref}>
+      {/* User info row */}
+      <div className="user-popup__header">
+        <div className="user-popup__avatar">{initials}</div>
+        <div className="user-popup__info">
+          <p className="user-popup__name">{user?.name || 'User'}</p>
+          <p className="user-popup__email">{user?.email || 'No email'}</p>
+          <p className="user-popup__balance">
+            ₱{totalBalance.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </p>
+        </div>
+      </div>
+
+      <div className="user-popup__divider" />
+
+      {/* Settings */}
+      <button className="user-popup__item" onClick={() => { navigate('/settings'); onClose() }}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="3" />
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+        </svg>
+        Settings
+      </button>
+
+      <div className="user-popup__divider" />
+
+      {/* Log out */}
+      <button className="user-popup__item user-popup__item--danger" onClick={handleLogout}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+          <polyline points="16 17 21 12 16 7" />
+          <line x1="21" y1="12" x2="9" y2="12" />
+        </svg>
+        Log out
+      </button>
+    </div>
+  )
+}
+
 function Sidebar() {
   const location = useLocation()
   const user = useAuthStore((state) => state.user)
+  const wallets = useWalletStore((state) => state.wallets)
+  const [popupOpen, setPopupOpen] = useState(false)
+
   const userName = user?.name || 'User'
-  const userInitial = userName.charAt(0).toUpperCase()
+  const initials = userName
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2)
+
+  const totalBalance = wallets.reduce((sum, w) => sum + (w.balance || 0), 0)
 
   return (
     <aside className="sidebar">
@@ -77,13 +148,33 @@ function Sidebar() {
         ))}
       </nav>
 
-      {/* User */}
-      <div className="sidebar__user">
-        <div className="sidebar__user-avatar">{userInitial}</div>
-        <div className="sidebar__user-info">
-          <span className="sidebar__user-name">{userName}</span>
-          <span className="sidebar__user-balance">₱0.00</span>
-        </div>
+      {/* User card — clickable */}
+      <div className="sidebar__user-wrap">
+        {popupOpen && (
+          <UserPopup
+            user={user}
+            totalBalance={totalBalance}
+            initials={initials}
+            onClose={() => setPopupOpen(false)}
+          />
+        )}
+
+        <button
+          className="sidebar__user"
+          onClick={() => setPopupOpen((v) => !v)}
+          aria-label="User menu"
+        >
+          <div className="sidebar__user-avatar">{initials}</div>
+          <div className="sidebar__user-info">
+            <span className="sidebar__user-name">{userName}</span>
+            <span className="sidebar__user-balance">
+              ₱{totalBalance.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </span>
+          </div>
+          <svg className="sidebar__user-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M8 9l4-4 4 4M8 15l4 4 4-4" />
+          </svg>
+        </button>
       </div>
     </aside>
   )

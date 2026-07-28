@@ -1,8 +1,10 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Sidebar from '../components/Sidebar'
 import Modal from '../components/Modal'
 import TransactionForm from '../components/TransactionForm'
 import useWalletStore from '../store/walletStore'
+import { getTransactions, createTransaction, updateTransaction, deleteTransaction } from '../api/transactions'
+import { getWallets } from '../api/wallets'
 import './TransactionsPage.css'
 
 const TYPE_OPTIONS = ['All', 'income', 'expense']
@@ -15,47 +17,53 @@ const CATEGORY_OPTIONS = [
 
 function TransactionsPage() {
   const wallets = useWalletStore((state) => state.wallets)
+  const setWallets = useWalletStore((state) => state.setWallets)
   const [transactions, setTransactions] = useState([])
   const [search, setSearch] = useState('')
   const [typeFilter, setTypeFilter] = useState('All')
   const [categoryFilter, setCategoryFilter] = useState('All')
-
-  // Modal state
   const [modalOpen, setModalOpen] = useState(false)
-  const [editTarget, setEditTarget] = useState(null) // null = create, object = edit
+  const [editTarget, setEditTarget] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [fetchLoading, setFetchLoading] = useState(true)
 
-  const openCreate = () => {
-    setEditTarget(null)
-    setModalOpen(true)
-  }
+  // Load transactions and refresh wallets on mount
+  useEffect(() => {
+    const load = async () => {
+      setFetchLoading(true)
+      try {
+        const [txns, walletData] = await Promise.all([getTransactions(), getWallets()])
+        setTransactions(txns)
+        setWallets(walletData)
+      } catch (err) {
+        console.error(err)
+      } finally {
+        setFetchLoading(false)
+      }
+    }
+    load()
+  }, [])
 
+  const openCreate = () => { setEditTarget(null); setModalOpen(true) }
   const openEdit = (txn) => {
-    setEditTarget({
-      ...txn,
-      date: txn.date?.slice(0, 10) ?? '',
-    })
+    setEditTarget({ ...txn, date: txn.date?.slice(0, 10) ?? '' })
     setModalOpen(true)
   }
-
-  const closeModal = () => {
-    setModalOpen(false)
-    setEditTarget(null)
-  }
+  const closeModal = () => { setModalOpen(false); setEditTarget(null) }
 
   const handleSubmit = async (formData) => {
     setIsLoading(true)
     try {
       if (editTarget) {
-        // TODO: PUT /api/transactions/:id
-        setTransactions((prev) =>
-          prev.map((t) => (t.id === editTarget.id ? { ...t, ...formData } : t))
-        )
+        const updated = await updateTransaction(editTarget.id, formData)
+        setTransactions((prev) => prev.map((t) => (t.id === updated.id ? updated : t)))
       } else {
-        // TODO: POST /api/transactions
-        const newTxn = { ...formData, id: Date.now() }
-        setTransactions((prev) => [newTxn, ...prev])
+        const created = await createTransaction(formData)
+        setTransactions((prev) => [created, ...prev])
       }
+      // Refresh wallets so balance updates instantly
+      const walletData = await getWallets()
+      setWallets(walletData)
       closeModal()
     } catch (err) {
       console.error(err)
@@ -64,12 +72,17 @@ function TransactionsPage() {
     }
   }
 
-  const handleDelete = (id) => {
-    // TODO: DELETE /api/transactions/:id
-    setTransactions((prev) => prev.filter((t) => t.id !== id))
+  const handleDelete = async (id) => {
+    try {
+      await deleteTransaction(id)
+      setTransactions((prev) => prev.filter((t) => t.id !== id))
+      const walletData = await getWallets()
+      setWallets(walletData)
+    } catch (err) {
+      console.error(err)
+    }
   }
 
-  // Filtering
   const filtered = transactions.filter((t) => {
     const matchSearch =
       !search ||
