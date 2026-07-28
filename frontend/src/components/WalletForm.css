@@ -1,0 +1,246 @@
+.wallet-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.wallet-form__field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  position: relative;
+}
+
+.wallet-form__label {
+  font-family: 'Poppins', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.wallet-form__input {
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(167, 239, 158, 0.18);
+  border-radius: 8px;
+  padding: 10px 12px;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.wallet-form__input::placeholder {
+  color: rgba(255, 255, 255, 0.25);
+}
+
+.wallet-form__input:focus {
+  border-color: #a7ef9e;
+  background: rgba(167, 239, 158, 0.05);
+  box-shadow: 0 0 0 3px rgba(167, 239, 158, 0.1);
+}
+
+.wallet-form__input--error {
+  border-color: rgba(248, 113, 113, 0.6) !important;
+}
+
+.wallet-form__error {
+  font-family: 'Poppins', sans-serif;
+  font-size: 12px;
+  color: #f87171;
+}
+
+/* Custom Dropdown */
+.wallet-form__dropdown {
+  position: relative;
+}
+
+.wallet-form__dropdown-trigger {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(167, 239, 158, 0.18);
+  border-radius: 8px;
+  cursor: text;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.wallet-form__dropdown-trigger:focus-within {
+  border-color: #a7ef9e;
+  box-shadow: 0 0 0 3px rgba(167, 239, 158, 0.1);
+}
+
+.wallet-form__selected-logo,
+.wallet-form__search-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  object-fit: contain;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.wallet-form__search-input {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  color: #ffffff;
+}
+
+.wallet-form__search-input::placeholder {
+  color: rgba(255, 255, 255, 0.25);
+}
+
+.wallet-form__chevron {
+  width: 14px;
+  height: 14px;
+  color: rgba(255, 255, 255, 0.4);
+  flex-shrink: 0;
+}
+
+/* Dropdown List */
+.wallet-form__dropdown-list {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  max-height: 240px;
+  overflow-y: auto;
+  background: #1a1b1e;
+  border: 1px solid rgba(167, 239, 158, 0.2);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  z-index: 10;
+  scrollbar-width: thin;
+}
+
+.wallet-form__dropdown-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.wallet-form__dropdown-list::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.wallet-form__dropdown-list::-webkit-scrollbar-thumb {
+  background: rgba(167, 239, 158, 0.2);
+  border-radius: 3px;
+}
+
+.wallet-form__dropdown-empty {
+  padding: 12px 14px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.3);
+  text-align: center;
+}
+
+.wallet-form__dropdown-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: none;
+  border: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.2s ease;
+}
+
+.wallet-form__dropdown-item:hover {
+  background: rgba(167, 239, 158, 0.08);
+}
+
+.wallet-form__dropdown-item--active {
+  background: rgba(167, 239, 158, 0.12);
+}
+
+.wallet-form__dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.wallet-form__dropdown-logo {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  flex-shrink: 0;
+  border-radius: 4px;
+}
+
+.wallet-form__dropdown-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.wallet-form__dropdown-name {
+  font-family: 'Poppins', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: #ffffff;
+}
+
+.wallet-form__dropdown-type {
+  font-family: 'Poppins', sans-serif;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.4);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+/* Actions */
+.wallet-form__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.wallet-form__cancel,
+.wallet-form__save {
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 9px 22px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+}
+
+.wallet-form__cancel {
+  background: rgba(255, 255, 255, 0.07);
+  color: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.wallet-form__cancel:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+
+.wallet-form__save {
+  background: #a7ef9e;
+  color: #0a0c0a;
+}
+
+.wallet-form__save:hover:not(:disabled) {
+  background: #c5f5be;
+  box-shadow: 0 0 14px rgba(167, 239, 158, 0.3);
+  transform: translateY(-1px);
+}
+
+.wallet-form__save:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

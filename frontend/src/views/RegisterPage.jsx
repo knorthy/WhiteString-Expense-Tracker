@@ -2,10 +2,13 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import FaultyTerminal from '../components/FaultyTerminal'
 import claroLogo from '../assets/Claro.png'
+import { register } from '../api/auth'
+import useAuthStore from '../store/authStore'
 import './AuthPage.css'
 
 function RegisterPage() {
   const navigate = useNavigate()
+  const setUser = useAuthStore((state) => state.setUser)
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -39,10 +42,17 @@ function RegisterPage() {
     }
     setLoading(true)
     try {
-      // TODO: wire up to Laravel auth API
+      const { user, token } = await register(form)
+      localStorage.setItem('claro_token', token)
+      setUser(user)
       navigate('/dashboard')
     } catch (err) {
-      setErrors({ general: err.message || 'Registration failed. Please try again.' })
+      const serverErrors = err.response?.data?.errors || {}
+      if (Object.keys(serverErrors).length > 0) {
+        setErrors(serverErrors)
+      } else {
+        setErrors({ general: err.response?.data?.message || 'Registration failed.' })
+      }
     } finally {
       setLoading(false)
     }

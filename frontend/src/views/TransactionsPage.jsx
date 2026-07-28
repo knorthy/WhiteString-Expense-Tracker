@@ -1,7 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Sidebar from '../components/Sidebar'
 import Modal from '../components/Modal'
 import TransactionForm from '../components/TransactionForm'
+import useWalletStore from '../store/walletStore'
+import useCurrencyStore from '../store/currencyStore'
+import { getTransactions, createTransaction, updateTransaction, deleteTransaction } from '../api/transactions'
+import { getWallets } from '../api/wallets'
 import './TransactionsPage.css'
 
 const TYPE_OPTIONS = ['All', 'income', 'expense']
@@ -13,47 +17,55 @@ const CATEGORY_OPTIONS = [
 ]
 
 function TransactionsPage() {
+  const wallets = useWalletStore((state) => state.wallets)
+  const setWallets = useWalletStore((state) => state.setWallets)
+  const format = useCurrencyStore((state) => state.format)
   const [transactions, setTransactions] = useState([])
   const [search, setSearch] = useState('')
   const [typeFilter, setTypeFilter] = useState('All')
   const [categoryFilter, setCategoryFilter] = useState('All')
-
-  // Modal state
   const [modalOpen, setModalOpen] = useState(false)
-  const [editTarget, setEditTarget] = useState(null) // null = create, object = edit
+  const [editTarget, setEditTarget] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [fetchLoading, setFetchLoading] = useState(true)
 
-  const openCreate = () => {
-    setEditTarget(null)
-    setModalOpen(true)
-  }
+  // Load transactions and refresh wallets on mount
+  useEffect(() => {
+    const load = async () => {
+      setFetchLoading(true)
+      try {
+        const [txns, walletData] = await Promise.all([getTransactions(), getWallets()])
+        setTransactions(txns)
+        setWallets(walletData)
+      } catch (err) {
+        console.error(err)
+      } finally {
+        setFetchLoading(false)
+      }
+    }
+    load()
+  }, [])
 
+  const openCreate = () => { setEditTarget(null); setModalOpen(true) }
   const openEdit = (txn) => {
-    setEditTarget({
-      ...txn,
-      date: txn.date?.slice(0, 10) ?? '',
-    })
+    setEditTarget({ ...txn, date: txn.date?.slice(0, 10) ?? '' })
     setModalOpen(true)
   }
-
-  const closeModal = () => {
-    setModalOpen(false)
-    setEditTarget(null)
-  }
+  const closeModal = () => { setModalOpen(false); setEditTarget(null) }
 
   const handleSubmit = async (formData) => {
     setIsLoading(true)
     try {
       if (editTarget) {
-        // TODO: PUT /api/transactions/:id
-        setTransactions((prev) =>
-          prev.map((t) => (t.id === editTarget.id ? { ...t, ...formData } : t))
-        )
+        const updated = await updateTransaction(editTarget.id, formData)
+        setTransactions((prev) => prev.map((t) => (t.id === updated.id ? updated : t)))
       } else {
-        // TODO: POST /api/transactions
-        const newTxn = { ...formData, id: Date.now() }
-        setTransactions((prev) => [newTxn, ...prev])
+        const created = await createTransaction(formData)
+        setTransactions((prev) => [created, ...prev])
       }
+      // Refresh wallets so balance updates instantly
+      const walletData = await getWallets()
+      setWallets(walletData)
       closeModal()
     } catch (err) {
       console.error(err)
@@ -62,12 +74,17 @@ function TransactionsPage() {
     }
   }
 
-  const handleDelete = (id) => {
-    // TODO: DELETE /api/transactions/:id
-    setTransactions((prev) => prev.filter((t) => t.id !== id))
+  const handleDelete = async (id) => {
+    try {
+      await deleteTransaction(id)
+      setTransactions((prev) => prev.filter((t) => t.id !== id))
+      const walletData = await getWallets()
+      setWallets(walletData)
+    } catch (err) {
+      console.error(err)
+    }
   }
 
-  // Filtering
   const filtered = transactions.filter((t) => {
     const matchSearch =
       !search ||
@@ -173,7 +190,7 @@ function TransactionsPage() {
                       <td>{t.category}</td>
                       <td className="txn-table__desc">{t.description || '—'}</td>
                       <td className={`txn-table__amount txn-table__amount--${t.type}`}>
-                        {t.type === 'expense' ? '-' : '+'}₱{Number(t.amount).toFixed(2)}
+                        {t.type === 'expense' ? '-' : '+'}{format(t.amount)}
                       </td>
                       <td className="txn-table__actions">
                         <button className="txn-table__edit-btn" onClick={() => openEdit(t)}>Edit</button>
@@ -197,6 +214,7 @@ function TransactionsPage() {
       >
         <TransactionForm
           initial={editTarget}
+          wallets={wallets}
           onSubmit={handleSubmit}
           onCancel={closeModal}
           isLoading={isLoading}

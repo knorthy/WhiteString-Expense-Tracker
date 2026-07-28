@@ -8,7 +8,10 @@ const useAuthStore = create(
 
       setUser: (user) => set({ user }),
 
-      clearUser: () => set({ user: null }),
+      clearUser: () => {
+        set({ user: null })
+        localStorage.removeItem('claro_token')
+      },
 
       // Helper — returns just the first name
       getFirstName: () => {

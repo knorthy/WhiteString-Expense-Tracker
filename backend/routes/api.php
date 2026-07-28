@@ -1,18 +1,33 @@
 <?php
 
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\TransactionController;
+use App\Http\Controllers\WalletController;
 use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
 | API Routes
 |--------------------------------------------------------------------------
-| All routes here are prefixed with /api automatically.
-| No auth middleware — single-user tool as per spec.
 */
 
-// Summary must be declared before the {id} route to avoid being caught by it
-Route::get('/transactions/summary',  [TransactionController::class, 'summary']);
-Route::get('/categories',            [TransactionController::class, 'categories']);
+// Public auth routes
+Route::post('/register',        [AuthController::class, 'register']);
+Route::post('/login',           [AuthController::class, 'login']);
+Route::post('/forgot-password', [PasswordResetController::class, 'forgotPassword']);
+Route::post('/reset-password',  [PasswordResetController::class, 'resetPassword']);
 
-Route::apiResource('transactions', TransactionController::class);
+// Protected routes — require Sanctum token
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get('/user',    [AuthController::class, 'me']);
+
+    // Transactions
+    Route::get('/transactions/summary', [TransactionController::class, 'summary']);
+    Route::get('/categories',           [TransactionController::class, 'categories']);
+    Route::apiResource('transactions',  TransactionController::class);
+
+    // Wallets
+    Route::apiResource('wallets', WalletController::class);
+});
