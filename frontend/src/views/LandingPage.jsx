@@ -36,7 +36,8 @@ function LandingPage() {
           alignItems: 'center',
           justifyContent: 'center',
           color: 'white',
-          textAlign: 'center'
+          textAlign: 'center',
+          pointerEvents: 'none'  // let mouse events pass through to the canvas
         }}
       >
         <h1>WhiteString Expense Tracker</h1>
