@@ -1,7 +1,5 @@
 import { useState } from 'react'
 import Sidebar from '../components/Sidebar'
-import Modal from '../components/Modal'
-import TransactionForm from '../components/TransactionForm'
 import useAuthStore from '../store/authStore'
 import './DashboardPage.css'
 
@@ -20,24 +18,9 @@ function SummaryCard({ label, value, type, icon }) {
 function DashboardPage() {
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
-  const [modalOpen, setModalOpen] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
   const firstName = useAuthStore((state) =>
     state.user?.name ? state.user.name.split(' ')[0] : 'there'
   )
-
-  const handleTransactionSubmit = async (formData) => {
-    setIsLoading(true)
-    try {
-      // TODO: POST /api/transactions
-      console.log('New transaction:', formData)
-      setModalOpen(false)
-    } catch (err) {
-      console.error(err)
-    } finally {
-      setIsLoading(false)
-    }
-  }
 
   const handleApply = () => {
     console.log('Filter:', dateFrom, dateTo)
@@ -59,15 +42,6 @@ function DashboardPage() {
             <div>
               <h1 className="dashboard-header__title">Dashboard</h1>
             </div>
-            <button
-              className="dashboard-header__add-btn"
-              onClick={() => setModalOpen(true)}
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="dashboard-header__add-icon">
-                <path d="M12 5v14M5 12h14" />
-              </svg>
-              Add Transaction
-            </button>
           </div>
 
           {/* Welcome */}
@@ -186,19 +160,6 @@ function DashboardPage() {
           </div>
         </main>
       </div>
-
-      <Modal
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        title="New transaction"
-        subtitle="Record an income or expense."
-      >
-        <TransactionForm
-          onSubmit={handleTransactionSubmit}
-          onCancel={() => setModalOpen(false)}
-          isLoading={isLoading}
-        />
-      </Modal>
     </>
   )
 }

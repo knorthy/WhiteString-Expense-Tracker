@@ -16,6 +16,7 @@ const DEFAULT_FORM = {
   amount: '',
   date: '',
   description: '',
+  walletId: '',
 }
 
 /**
@@ -23,15 +24,15 @@ const DEFAULT_FORM = {
  *
  * Props:
  *   initial    — object, pre-filled values for edit mode (optional)
- *   onSubmit   — function(formData), called on save
- *   onCancel   — function, called on cancel
+ *   wallets    — array of user's wallets [{ id, name, logo, type }]
+ *   onSubmit   — function(formData)
+ *   onCancel   — function
  *   isLoading  — boolean
  */
-function TransactionForm({ initial, onSubmit, onCancel, isLoading }) {
+function TransactionForm({ initial, wallets = [], onSubmit, onCancel, isLoading }) {
   const [form, setForm] = useState(initial || DEFAULT_FORM)
   const [errors, setErrors] = useState({})
 
-  // Re-populate when editing a different transaction
   useEffect(() => {
     setForm(initial || DEFAULT_FORM)
     setErrors({})
@@ -44,7 +45,6 @@ function TransactionForm({ initial, onSubmit, onCancel, isLoading }) {
     setForm((prev) => ({
       ...prev,
       [name]: value,
-      // Reset category when type changes
       ...(name === 'type' ? { category: '' } : {}),
     }))
     setErrors((prev) => ({ ...prev, [name]: '' }))
@@ -57,6 +57,7 @@ function TransactionForm({ initial, onSubmit, onCancel, isLoading }) {
     if (!form.amount || isNaN(form.amount) || Number(form.amount) <= 0)
       e.amount = 'Enter a valid amount greater than 0.'
     if (!form.date) e.date = 'Date is required.'
+    if (!form.walletId) e.walletId = 'Please select a wallet.'
     return e
   }
 
@@ -67,14 +68,14 @@ function TransactionForm({ initial, onSubmit, onCancel, isLoading }) {
       setErrors(validationErrors)
       return
     }
-    onSubmit({
-      ...form,
-      amount: parseFloat(form.amount),
-    })
+    onSubmit({ ...form, amount: parseFloat(form.amount) })
   }
+
+  const selectedWallet = wallets.find((w) => String(w.id) === String(form.walletId))
 
   return (
     <form className="txn-form" onSubmit={handleSubmit} noValidate>
+
       {/* Type */}
       <div className="txn-form__field">
         <label className="txn-form__label">Type</label>
@@ -107,7 +108,35 @@ function TransactionForm({ initial, onSubmit, onCancel, isLoading }) {
         {errors.category && <span className="txn-form__error">{errors.category}</span>}
       </div>
 
-      {/* Amount + Date side by side */}
+      {/* Wallet */}
+      <div className="txn-form__field">
+        <label className="txn-form__label">Wallet / Bank</label>
+        {wallets.length === 0 ? (
+          <p className="txn-form__no-wallets">No wallets added yet. Add one in the Wallets page.</p>
+        ) : (
+          <div className={`txn-form__wallet-select${errors.walletId ? ' txn-form__input--error' : ''}`}>
+            {selectedWallet && (
+              selectedWallet.logo
+                ? <img src={selectedWallet.logo} alt={selectedWallet.name} className="txn-form__wallet-logo" />
+                : <span className="txn-form__wallet-cash-icon">💵</span>
+            )}
+            <select
+              name="walletId"
+              className="txn-form__wallet-native-select"
+              value={form.walletId}
+              onChange={handleChange}
+            >
+              <option value="">Select wallet</option>
+              {wallets.map((w) => (
+                <option key={w.id} value={w.id}>{w.name}</option>
+              ))}
+            </select>
+          </div>
+        )}
+        {errors.walletId && <span className="txn-form__error">{errors.walletId}</span>}
+      </div>
+
+      {/* Amount + Date */}
       <div className="txn-form__row">
         <div className="txn-form__field">
           <label className="txn-form__label">Amount</label>
@@ -139,7 +168,9 @@ function TransactionForm({ initial, onSubmit, onCancel, isLoading }) {
 
       {/* Description */}
       <div className="txn-form__field">
-        <label className="txn-form__label">Description <span className="txn-form__optional">(optional)</span></label>
+        <label className="txn-form__label">
+          Description <span className="txn-form__optional">(optional)</span>
+        </label>
         <textarea
           name="description"
           className="txn-form__textarea"
@@ -152,9 +183,7 @@ function TransactionForm({ initial, onSubmit, onCancel, isLoading }) {
 
       {/* Actions */}
       <div className="txn-form__actions">
-        <button type="button" className="txn-form__cancel" onClick={onCancel}>
-          Cancel
-        </button>
+        <button type="button" className="txn-form__cancel" onClick={onCancel}>Cancel</button>
         <button type="submit" className="txn-form__save" disabled={isLoading}>
           {isLoading ? 'Saving…' : 'Save'}
         </button>

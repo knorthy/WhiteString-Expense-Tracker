@@ -4,6 +4,7 @@ import LoginPage from './views/LoginPage'
 import RegisterPage from './views/RegisterPage'
 import DashboardPage from './views/DashboardPage'
 import TransactionsPage from './views/TransactionsPage'
+import WalletsPage from './views/WalletsPage'
 import CategoriesPage from './views/CategoriesPage'
 
 function App() {
@@ -15,6 +16,7 @@ function App() {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/transactions" element={<TransactionsPage />} />
+        <Route path="/wallets" element={<WalletsPage />} />
         <Route path="/categories" element={<CategoriesPage />} />
       </Routes>
     </BrowserRouter>

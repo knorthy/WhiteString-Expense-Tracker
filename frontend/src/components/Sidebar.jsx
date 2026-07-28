@@ -28,6 +28,16 @@ const NAV_ITEMS = [
     ),
   },
   {
+    label: 'Wallets',
+    path: '/wallets',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M20 12V8a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" />
+        <path d="M20 12a2 2 0 0 0-2-2h-2a2 2 0 0 0 0 4h2a2 2 0 0 0 2-2z" />
+      </svg>
+    ),
+  },
+  {
     label: 'Categories',
     path: '/categories',
     icon: (

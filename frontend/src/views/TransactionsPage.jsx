@@ -2,6 +2,7 @@ import { useState } from 'react'
 import Sidebar from '../components/Sidebar'
 import Modal from '../components/Modal'
 import TransactionForm from '../components/TransactionForm'
+import useWalletStore from '../store/walletStore'
 import './TransactionsPage.css'
 
 const TYPE_OPTIONS = ['All', 'income', 'expense']
@@ -13,6 +14,7 @@ const CATEGORY_OPTIONS = [
 ]
 
 function TransactionsPage() {
+  const wallets = useWalletStore((state) => state.wallets)
   const [transactions, setTransactions] = useState([])
   const [search, setSearch] = useState('')
   const [typeFilter, setTypeFilter] = useState('All')
@@ -197,6 +199,7 @@ function TransactionsPage() {
       >
         <TransactionForm
           initial={editTarget}
+          wallets={wallets}
           onSubmit={handleSubmit}
           onCancel={closeModal}
           isLoading={isLoading}
