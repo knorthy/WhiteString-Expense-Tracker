@@ -1,0 +1,144 @@
+.navbar {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 48px);
+  max-width: 1000px;
+  z-index: 100;
+
+  /* Glassmorphism */
+  background: rgba(10, 12, 10, 0.45);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+
+  /* Pill shape */
+  border-radius: 99px;
+  border: 1px solid rgba(167, 239, 158, 0.15);
+
+  /* Subtle shadow to lift it off the background */
+  box-shadow:
+    0 4px 24px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(167, 239, 158, 0.08);
+}
+
+.navbar__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+}
+
+/* Empty left div keeps the brand/CTA pushed right
+   while leaving room to add nav links later */
+.navbar__left {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.navbar__right {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.navbar__link {
+  font-size: 14px;
+  font-weight: 400;
+  color: rgba(167, 239, 158, 0.75);
+  text-decoration: none;
+  letter-spacing: 0.3px;
+  transition: color 0.2s ease;
+  pointer-events: auto;
+}
+
+.navbar__link:hover {
+  color: #a7ef9e;
+}
+
+.navbar__link:focus-visible {
+  outline: 2px solid #a7ef9e;
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+
+/* Brand — logo icon + name */
+.navbar__brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: #a7ef9e;
+}
+
+.navbar__logo-icon {
+  width: 22px;
+  height: 22px;
+  color: #a7ef9e;
+  flex-shrink: 0;
+}
+
+.navbar__logo-text {
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: #a7ef9e;
+  font-family: 'Poppins', sans-serif;
+}
+
+/* Get Started CTA button */
+.navbar__cta {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 18px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  color: #0a0c0a;
+  background: #a7ef9e;
+  border: 1px solid transparent;
+  transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+  white-space: nowrap;
+  /* Ensure clicks work even if a parent has pointer-events: none */
+  pointer-events: auto;
+}
+
+.navbar__cta:hover {
+  background: #c5f5be;
+  box-shadow: 0 0 14px rgba(167, 239, 158, 0.4);
+  transform: translateY(-1px);
+}
+
+.navbar__cta:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+.navbar__cta:focus-visible {
+  outline: 2px solid #a7ef9e;
+  outline-offset: 3px;
+}
+
+/* Responsive — tighten padding on small screens */
+@media (max-width: 640px) {
+  .navbar {
+    top: 10px;
+    width: calc(100% - 24px);
+    border-radius: 12px;
+  }
+
+  .navbar__inner {
+    padding: 10px 14px;
+  }
+
+  .navbar__logo-text {
+    font-size: 15px;
+  }
+
+  .navbar__cta {
+    padding: 7px 14px;
+    font-size: 13px;
+  }
+}
