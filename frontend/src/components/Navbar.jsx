@@ -1,3 +1,4 @@
+import claroLogo from '../assets/Claro.png'
 import './Navbar.css'
 
 function Navbar() {
@@ -7,17 +8,7 @@ function Navbar() {
         {/* Left side — logo */}
         <div className="navbar__left">
           <div className="navbar__brand">
-            <svg
-              className="navbar__logo-icon"
-              viewBox="0 0 24 24"
-              fill="none"
-              aria-hidden="true"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <rect x="2" y="3" width="20" height="18" rx="3" stroke="currentColor" strokeWidth="1.5" />
-              <path d="M7 8l3 3-3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              <path d="M13 14h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-            </svg>
+            <img src={claroLogo} alt="Claro logo" className="navbar__logo-icon" />
             <span className="navbar__logo-text">Claro</span>
           </div>
         </div>
