@@ -1,0 +1,339 @@
+/* Layout */
+.dashboard-layout {
+  display: flex;
+  min-height: 100vh;
+  background: #0a0c0a;
+  font-family: 'Poppins', sans-serif;
+}
+
+/* ── Main Content ─────────────────────────────────────── */
+.dashboard-main {
+  margin-left: 256px; /* 240px sidebar + 16px gap */
+  flex: 1;
+  padding: 32px 40px;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+.dashboard-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.dashboard-header__title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0;
+}
+
+.dashboard-header__add-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 18px;
+  background: #a7ef9e;
+  color: #0a0c0a;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.dashboard-header__add-btn:hover {
+  background: #c5f5be;
+  box-shadow: 0 0 16px rgba(167, 239, 158, 0.25);
+}
+
+.dashboard-header__add-icon {
+  width: 16px;
+  height: 16px;
+}
+
+/* Welcome */
+.dashboard-welcome {
+  margin-bottom: 24px;
+}
+
+.dashboard-welcome__title {
+  font-size: 20px;
+  font-weight: 500;
+  color: #ffffff;
+  margin: 0 0 4px;
+}
+
+.dashboard-welcome__sub {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0;
+}
+
+/* Date Filter */
+.date-filter {
+  background: #111213;
+  border: 1px solid rgba(167, 239, 158, 0.1);
+  border-radius: 12px;
+  padding: 18px 20px;
+  margin-bottom: 24px;
+}
+
+.date-filter__label {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0 0 12px;
+}
+
+.date-filter__row {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.date-filter__field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-width: 180px;
+}
+
+.date-filter__field-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.date-filter__input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.date-filter__cal-icon {
+  position: absolute;
+  left: 12px;
+  width: 16px;
+  height: 16px;
+  color: rgba(255, 255, 255, 0.3);
+  pointer-events: none;
+}
+
+.date-filter__input {
+  width: 100%;
+  padding: 9px 12px 9px 36px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(167, 239, 158, 0.15);
+  border-radius: 8px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 13px;
+  color: #ffffff;
+  outline: none;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.date-filter__input::-webkit-calendar-picker-indicator {
+  filter: invert(0.7);
+  cursor: pointer;
+}
+
+.date-filter__input:focus {
+  border-color: #a7ef9e;
+  background: rgba(167, 239, 158, 0.05);
+}
+
+.date-filter__actions {
+  display: flex;
+  gap: 8px;
+}
+
+.date-filter__apply,
+.date-filter__clear {
+  padding: 9px 20px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.date-filter__apply {
+  background: #a7ef9e;
+  color: #0a0c0a;
+}
+
+.date-filter__apply:hover {
+  background: #c5f5be;
+  box-shadow: 0 0 14px rgba(167, 239, 158, 0.25);
+}
+
+.date-filter__clear {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.date-filter__clear:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Summary Cards */
+.summary-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.summary-card {
+  background: #111213;
+  border: 1px solid rgba(167, 239, 158, 0.1);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.summary-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.summary-card__label {
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.summary-card__icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.summary-card__value {
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.summary-card--balance .summary-card__icon {
+  color: #a7ef9e;
+}
+.summary-card--balance .summary-card__value {
+  color: #a7ef9e;
+}
+
+.summary-card--income .summary-card__icon {
+  color: #4ade80;
+}
+.summary-card--income .summary-card__value {
+  color: #4ade80;
+}
+
+.summary-card--expense .summary-card__icon {
+  color: #f87171;
+}
+.summary-card--expense .summary-card__value {
+  color: #f87171;
+}
+
+/* Charts Row */
+.charts-row {
+  display: grid;
+  grid-template-columns: 1fr 400px;
+  gap: 16px;
+}
+
+@media (max-width: 1200px) {
+  .charts-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.chart-card {
+  background: #111213;
+  border: 1px solid rgba(167, 239, 158, 0.1);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.chart-card--wide {
+  grid-column: span 1;
+}
+
+.chart-card__top-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.chart-card__title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0 0 4px;
+}
+
+.chart-card__sub {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.4);
+  margin: 0;
+}
+
+.chart-card__toggle {
+  display: flex;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 6px;
+  padding: 2px;
+}
+
+.chart-card__toggle-btn {
+  padding: 5px 12px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.5);
+  background: transparent;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.chart-card__toggle-btn--active {
+  background: #a7ef9e;
+  color: #0a0c0a;
+}
+
+.chart-card__empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 14px;
+}
+
+@media (max-width: 768px) {
+  .dashboard-main {
+    padding: 20px 16px;
+  }
+
+  .dashboard-layout {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid rgba(167, 239, 158, 0.1);
+    padding: 16px;
+  }
+}

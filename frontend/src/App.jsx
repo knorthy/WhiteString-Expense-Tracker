@@ -2,6 +2,9 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import LandingPage from './views/LandingPage'
 import LoginPage from './views/LoginPage'
 import RegisterPage from './views/RegisterPage'
+import DashboardPage from './views/DashboardPage'
+import TransactionsPage from './views/TransactionsPage'
+import CategoriesPage from './views/CategoriesPage'
 
 function App() {
   return (
@@ -10,7 +13,9 @@ function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
-        {/* Dashboard and other protected routes go here */}
+        <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/transactions" element={<TransactionsPage />} />
+        <Route path="/categories" element={<CategoriesPage />} />
       </Routes>
     </BrowserRouter>
   )
