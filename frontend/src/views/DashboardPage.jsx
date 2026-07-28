@@ -4,6 +4,7 @@ import IncomeExpenseChart from '../components/IncomeExpenseChart'
 import BreakdownChart from '../components/BreakdownChart'
 import useAuthStore from '../store/authStore'
 import useWalletStore from '../store/walletStore'
+import useCurrencyStore from '../store/currencyStore'
 import { getSummary, getTransactions } from '../api/transactions'
 import { getWallets } from '../api/wallets'
 import { WALLET_OPTIONS } from '../constants/wallets'
@@ -35,6 +36,7 @@ function DashboardPage() {
   )
   const setWallets = useWalletStore((state) => state.setWallets)
   const wallets = useWalletStore((state) => state.wallets)
+  const format = useCurrencyStore((state) => state.format)
   const totalBalance = wallets.reduce((sum, w) => sum + (parseFloat(w.balance) || 0), 0)
 
   const loadData = useCallback(async (filters = {}) => {
@@ -138,7 +140,7 @@ function DashboardPage() {
           <div className="summary-cards">
             <SummaryCard
               label="Current Balance"
-              value={`₱${totalBalance.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+              value={format(totalBalance)}
               type="balance"
               icon={
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -149,7 +151,7 @@ function DashboardPage() {
             />
             <SummaryCard
               label="Total Income"
-              value={`₱${parseFloat(summary.total_income).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+              value={format(summary.total_income)}
               type="income"
               icon={
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -160,7 +162,7 @@ function DashboardPage() {
             />
             <SummaryCard
               label="Total Expenses"
-              value={`₱${parseFloat(summary.total_expenses).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+              value={format(summary.total_expenses)}
               type="expense"
               icon={
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">

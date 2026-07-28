@@ -3,6 +3,7 @@ import Sidebar from '../components/Sidebar'
 import Modal from '../components/Modal'
 import TransactionForm from '../components/TransactionForm'
 import useWalletStore from '../store/walletStore'
+import useCurrencyStore from '../store/currencyStore'
 import { getTransactions, createTransaction, updateTransaction, deleteTransaction } from '../api/transactions'
 import { getWallets } from '../api/wallets'
 import './TransactionsPage.css'
@@ -18,6 +19,7 @@ const CATEGORY_OPTIONS = [
 function TransactionsPage() {
   const wallets = useWalletStore((state) => state.wallets)
   const setWallets = useWalletStore((state) => state.setWallets)
+  const format = useCurrencyStore((state) => state.format)
   const [transactions, setTransactions] = useState([])
   const [search, setSearch] = useState('')
   const [typeFilter, setTypeFilter] = useState('All')
@@ -188,7 +190,7 @@ function TransactionsPage() {
                       <td>{t.category}</td>
                       <td className="txn-table__desc">{t.description || '—'}</td>
                       <td className={`txn-table__amount txn-table__amount--${t.type}`}>
-                        {t.type === 'expense' ? '-' : '+'}₱{Number(t.amount).toFixed(2)}
+                        {t.type === 'expense' ? '-' : '+'}{format(t.amount)}
                       </td>
                       <td className="txn-table__actions">
                         <button className="txn-table__edit-btn" onClick={() => openEdit(t)}>Edit</button>

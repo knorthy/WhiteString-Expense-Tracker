@@ -3,7 +3,9 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import claroLogo from '../assets/Claro.png'
 import useAuthStore from '../store/authStore'
 import useWalletStore from '../store/walletStore'
+import useCurrencyStore from '../store/currencyStore'
 import { logout } from '../api/auth'
+import SettingsModal from './SettingsModal'
 import './Sidebar.css'
 
 const NAV_ITEMS = [
@@ -51,7 +53,8 @@ const NAV_ITEMS = [
   },
 ]
 
-function UserPopup({ user, totalBalance, initials, onClose }) {
+// UserPopup receives format as a prop so it stays in scope
+function UserPopup({ user, totalBalance, initials, format, onClose, onOpenSettings }) {
   const navigate = useNavigate()
   const clearUser = useAuthStore((state) => state.clearUser)
   const ref = useRef(null)
@@ -65,11 +68,7 @@ function UserPopup({ user, totalBalance, initials, onClose }) {
   }, [onClose])
 
   const handleLogout = async () => {
-    try {
-      await logout()
-    } catch (_) {
-      // token may already be invalid — still clear locally
-    }
+    try { await logout() } catch (_) {}
     clearUser()
     navigate('/')
     onClose()
@@ -77,22 +76,21 @@ function UserPopup({ user, totalBalance, initials, onClose }) {
 
   return (
     <div className="user-popup" ref={ref}>
-      {/* User info row */}
       <div className="user-popup__header">
-        <div className="user-popup__avatar">{initials}</div>
+        {user?.avatar
+          ? <img src={user.avatar} alt={user?.name} className="user-popup__avatar user-popup__avatar--img" />
+          : <div className="user-popup__avatar">{initials}</div>
+        }
         <div className="user-popup__info">
           <p className="user-popup__name">{user?.name || 'User'}</p>
           <p className="user-popup__email">{user?.email || 'No email'}</p>
-          <p className="user-popup__balance">
-            ₱{totalBalance.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-          </p>
+          <p className="user-popup__balance">{format(totalBalance)}</p>
         </div>
       </div>
 
       <div className="user-popup__divider" />
 
-      {/* Settings */}
-      <button className="user-popup__item" onClick={() => { navigate('/settings'); onClose() }}>
+      <button className="user-popup__item" onClick={() => { onOpenSettings(); onClose() }}>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="12" cy="12" r="3" />
           <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
@@ -102,7 +100,6 @@ function UserPopup({ user, totalBalance, initials, onClose }) {
 
       <div className="user-popup__divider" />
 
-      {/* Log out */}
       <button className="user-popup__item user-popup__item--danger" onClick={handleLogout}>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
           <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
@@ -120,7 +117,9 @@ function Sidebar() {
   const user = useAuthStore((state) => state.user)
   const wallets = useWalletStore((state) => state.wallets)
   const setWallets = useWalletStore((state) => state.setWallets)
+  const format = useCurrencyStore((state) => state.format)
   const [popupOpen, setPopupOpen] = useState(false)
+  const [settingsOpen, setSettingsOpen] = useState(false)
 
   const userName = user?.name || 'User'
   const initials = userName
@@ -150,57 +149,64 @@ function Sidebar() {
   }, [location.pathname, user])
 
   return (
-    <aside className="sidebar">
-      {/* Logo */}
-      <Link to="/" className="sidebar__brand">
-        <img src={claroLogo} alt="Claro" className="sidebar__logo" />
-        <span className="sidebar__brand-name">Claro</span>
-      </Link>
+    <>
+      <aside className="sidebar">
+        {/* Logo */}
+        <Link to="#" className="sidebar__brand">
+          <img src={claroLogo} alt="Claro" className="sidebar__logo" />
+          <span className="sidebar__brand-name">Claro</span>
+        </Link>
 
-      {/* Nav */}
-      <nav className="sidebar__nav">
-        <p className="sidebar__section-label">Platform</p>
-        {NAV_ITEMS.map((item) => (
-          <Link
-            key={item.path}
-            to={item.path}
-            className={`sidebar__nav-item${location.pathname === item.path ? ' sidebar__nav-item--active' : ''}`}
+        {/* Nav */}
+        <nav className="sidebar__nav">
+          <p className="sidebar__section-label">Platform</p>
+          {NAV_ITEMS.map((item) => (
+            <Link
+              key={item.path}
+              to={item.path}
+              className={`sidebar__nav-item${location.pathname === item.path ? ' sidebar__nav-item--active' : ''}`}
+            >
+              <span className="sidebar__nav-icon">{item.icon}</span>
+              {item.label}
+            </Link>
+          ))}
+        </nav>
+
+        {/* User card */}
+        <div className="sidebar__user-wrap">
+          {popupOpen && (
+            <UserPopup
+              user={user}
+              totalBalance={totalBalance}
+              initials={initials}
+              format={format}
+              onClose={() => setPopupOpen(false)}
+              onOpenSettings={() => setSettingsOpen(true)}
+            />
+          )}
+
+          <button
+            className="sidebar__user"
+            onClick={() => setPopupOpen((v) => !v)}
+            aria-label="User menu"
           >
-            <span className="sidebar__nav-icon">{item.icon}</span>
-            {item.label}
-          </Link>
-        ))}
-      </nav>
+            {user?.avatar
+              ? <img src={user.avatar} alt={userName} className="sidebar__user-avatar sidebar__user-avatar--img" />
+              : <div className="sidebar__user-avatar">{initials}</div>
+            }
+            <div className="sidebar__user-info">
+              <span className="sidebar__user-name">{userName}</span>
+              <span className="sidebar__user-balance">{format(totalBalance)}</span>
+            </div>
+            <svg className="sidebar__user-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M8 9l4-4 4 4M8 15l4 4 4-4" />
+            </svg>
+          </button>
+        </div>
+      </aside>
 
-      {/* User card — clickable */}
-      <div className="sidebar__user-wrap">
-        {popupOpen && (
-          <UserPopup
-            user={user}
-            totalBalance={totalBalance}
-            initials={initials}
-            onClose={() => setPopupOpen(false)}
-          />
-        )}
-
-        <button
-          className="sidebar__user"
-          onClick={() => setPopupOpen((v) => !v)}
-          aria-label="User menu"
-        >
-          <div className="sidebar__user-avatar">{initials}</div>
-          <div className="sidebar__user-info">
-            <span className="sidebar__user-name">{userName}</span>
-            <span className="sidebar__user-balance">
-              ₱{totalBalance.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </span>
-          </div>
-          <svg className="sidebar__user-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M8 9l4-4 4 4M8 15l4 4 4-4" />
-          </svg>
-        </button>
-      </div>
-    </aside>
+      <SettingsModal isOpen={settingsOpen} onClose={() => setSettingsOpen(false)} />
+    </>
   )
 }
 

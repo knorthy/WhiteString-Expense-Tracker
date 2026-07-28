@@ -3,6 +3,7 @@ import Sidebar from '../components/Sidebar'
 import Modal from '../components/Modal'
 import WalletForm from '../components/WalletForm'
 import useWalletStore from '../store/walletStore'
+import useCurrencyStore from '../store/currencyStore'
 import { WALLET_OPTIONS } from '../constants/wallets'
 import { getWallets, createWallet, updateWalletBalance, deleteWallet } from '../api/wallets'
 import { getTransactions } from '../api/transactions'
@@ -121,13 +122,13 @@ function AdjustBalanceForm({ wallet, onSubmit, onCancel, isLoading }) {
 function WalletsPage() {
   const wallets = useWalletStore((state) => state.wallets)
   const setWallets = useWalletStore((state) => state.setWallets)
+  const format = useCurrencyStore((state) => state.format)
+  const totalBalance = wallets.reduce((sum, w) => sum + (parseFloat(w.balance) || 0), 0)
 
   const [addModalOpen, setAddModalOpen] = useState(false)
   const [adjustTarget, setAdjustTarget] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
   const [recentTxns, setRecentTxns] = useState([])
-
-  const totalBalance = wallets.reduce((sum, w) => sum + (parseFloat(w.balance) || 0), 0)
 
   // Load wallets and recent transactions from API on mount
   useEffect(() => {
@@ -207,7 +208,7 @@ function WalletsPage() {
           <div className="wallets-total">
             <div className="wallets-total__label">Total Balance</div>
             <div className="wallets-total__amount">
-              ₱{totalBalance.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              {format(totalBalance)}
             </div>
             <p className="wallets-total__sub">Across {wallets.length} wallet(s)</p>
           </div>
@@ -230,7 +231,7 @@ function WalletsPage() {
                         <span className="wallets-recent__category">{t.category}</span>
                       </div>
                       <span className={`wallets-recent__amount wallets-recent__amount--${t.type}`}>
-                        {t.type === 'expense' ? '-' : '+'}₱{parseFloat(t.amount).toLocaleString('en-PH', { minimumFractionDigits: 2 })}
+                        {t.type === 'expense' ? '-' : '+'}{format(t.amount)}
                       </span>
                     </li>
                   ))}
@@ -272,7 +273,7 @@ function WalletsPage() {
                   </div>
                   <div className="wallet-card__footer">
                     <div className="wallet-card__balance">
-                      ₱{w.balance.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      {format(w.balance)}
                     </div>
                   </div>
                 </div>

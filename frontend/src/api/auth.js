@@ -11,3 +11,9 @@ export const logout = () =>
 
 export const getMe = () =>
   client.get('/user').then((r) => r.data)
+
+export const forgotPassword = (email) =>
+  client.post('/forgot-password', { email }).then((r) => r.data)
+
+export const resetPassword = (data) =>
+  client.post('/reset-password', data).then((r) => r.data)
