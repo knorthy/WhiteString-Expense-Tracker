@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import claroLogo from '../assets/Claro.png'
 import useAuthStore from '../store/authStore'
 import useWalletStore from '../store/walletStore'
+import { logout } from '../api/auth'
 import './Sidebar.css'
 
 const NAV_ITEMS = [
@@ -63,7 +64,12 @@ function UserPopup({ user, totalBalance, initials, onClose }) {
     return () => document.removeEventListener('mousedown', handler)
   }, [onClose])
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await logout()
+    } catch (_) {
+      // token may already be invalid — still clear locally
+    }
     clearUser()
     navigate('/')
     onClose()
@@ -113,6 +119,7 @@ function Sidebar() {
   const location = useLocation()
   const user = useAuthStore((state) => state.user)
   const wallets = useWalletStore((state) => state.wallets)
+  const setWallets = useWalletStore((state) => state.setWallets)
   const [popupOpen, setPopupOpen] = useState(false)
 
   const userName = user?.name || 'User'
@@ -123,7 +130,24 @@ function Sidebar() {
     .toUpperCase()
     .slice(0, 2)
 
-  const totalBalance = wallets.reduce((sum, w) => sum + (w.balance || 0), 0)
+  const totalBalance = wallets.reduce((sum, w) => sum + (parseFloat(w.balance) || 0), 0)
+
+  // Refresh wallet balances on every page navigation
+  useEffect(() => {
+    if (!user) return
+    import('../api/wallets').then(({ getWallets }) =>
+      getWallets().then((data) => {
+        import('../constants/wallets').then(({ WALLET_OPTIONS }) => {
+          const enriched = data.map((w) => ({
+            ...w,
+            balance: parseFloat(w.balance) || 0,
+            logo: WALLET_OPTIONS.find((o) => o.id === w.wallet_key)?.logo ?? null,
+          }))
+          setWallets(enriched)
+        })
+      }).catch(() => {})
+    )
+  }, [location.pathname, user])
 
   return (
     <aside className="sidebar">

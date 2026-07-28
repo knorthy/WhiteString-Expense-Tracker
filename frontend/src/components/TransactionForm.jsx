@@ -68,7 +68,13 @@ function TransactionForm({ initial, wallets = [], onSubmit, onCancel, isLoading 
       setErrors(validationErrors)
       return
     }
-    onSubmit({ ...form, amount: parseFloat(form.amount) })
+    // Map walletId → wallet_id for the Laravel API
+    const { walletId, ...rest } = form
+    onSubmit({
+      ...rest,
+      wallet_id: parseInt(walletId, 10),
+      amount: parseFloat(form.amount),
+    })
   }
 
   const selectedWallet = wallets.find((w) => String(w.id) === String(form.walletId))

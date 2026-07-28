@@ -3,6 +3,9 @@ import Sidebar from '../components/Sidebar'
 import Modal from '../components/Modal'
 import WalletForm from '../components/WalletForm'
 import useWalletStore from '../store/walletStore'
+import { WALLET_OPTIONS } from '../constants/wallets'
+import { getWallets, createWallet, updateWalletBalance, deleteWallet } from '../api/wallets'
+import { getTransactions } from '../api/transactions'
 import './WalletsPage.css'
 
 // 3-dot context menu per card
@@ -117,20 +120,46 @@ function AdjustBalanceForm({ wallet, onSubmit, onCancel, isLoading }) {
 
 function WalletsPage() {
   const wallets = useWalletStore((state) => state.wallets)
-  const addWallet = useWalletStore((state) => state.addWallet)
-  const updateBalance = useWalletStore((state) => state.updateBalance)
-  const removeWallet = useWalletStore((state) => state.removeWallet)
+  const setWallets = useWalletStore((state) => state.setWallets)
 
   const [addModalOpen, setAddModalOpen] = useState(false)
   const [adjustTarget, setAdjustTarget] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [recentTxns, setRecentTxns] = useState([])
 
-  const totalBalance = wallets.reduce((sum, w) => sum + w.balance, 0)
+  const totalBalance = wallets.reduce((sum, w) => sum + (parseFloat(w.balance) || 0), 0)
+
+  // Load wallets and recent transactions from API on mount
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const [walletData, txnData] = await Promise.all([
+          getWallets(),
+          getTransactions(),
+        ])
+        // Attach logo from local constants since backend doesn't store images
+        const enriched = walletData.map((w) => ({
+          ...w,
+          logo: WALLET_OPTIONS.find((o) => o.id === w.wallet_key)?.logo ?? null,
+        }))
+        setWallets(enriched)
+        setRecentTxns(txnData.slice(0, 5)) // show last 5
+      } catch (err) {
+        console.error(err)
+      }
+    }
+    load()
+  }, [])
 
   const handleAdd = async (formData) => {
     setIsLoading(true)
     try {
-      addWallet(formData)
+      const created = await createWallet(formData)
+      const enriched = {
+        ...created,
+        logo: WALLET_OPTIONS.find((o) => o.id === created.wallet_key)?.logo ?? null,
+      }
+      setWallets([...wallets, enriched])
       setAddModalOpen(false)
     } catch (err) {
       console.error(err)
@@ -142,7 +171,8 @@ function WalletsPage() {
   const handleAdjustBalance = async (newBalance) => {
     setIsLoading(true)
     try {
-      updateBalance(adjustTarget.id, newBalance)
+      const updated = await updateWalletBalance(adjustTarget.id, newBalance)
+      setWallets(wallets.map((w) => w.id === updated.id ? { ...w, balance: updated.balance } : w))
       setAdjustTarget(null)
     } catch (err) {
       console.error(err)
@@ -151,8 +181,13 @@ function WalletsPage() {
     }
   }
 
-  const handleDelete = (id) => {
-    removeWallet(id)
+  const handleDelete = async (id) => {
+    try {
+      await deleteWallet(id)
+      setWallets(wallets.filter((w) => w.id !== id))
+    } catch (err) {
+      console.error(err)
+    }
   }
 
   return (
@@ -182,7 +217,25 @@ function WalletsPage() {
               <h3 className="wallets-recent__title">Recent Transactions</h3>
             </div>
             <div className="wallets-recent__body">
-              <p className="wallets-recent__empty">No transactions yet.</p>
+              {recentTxns.length === 0 ? (
+                <p className="wallets-recent__empty">No transactions yet.</p>
+              ) : (
+                <ul className="wallets-recent__list">
+                  {recentTxns.map((t) => (
+                    <li key={t.id} className="wallets-recent__item">
+                      <div className="wallets-recent__item-left">
+                        <span className={`wallets-recent__badge wallets-recent__badge--${t.type}`}>
+                          {t.type}
+                        </span>
+                        <span className="wallets-recent__category">{t.category}</span>
+                      </div>
+                      <span className={`wallets-recent__amount wallets-recent__amount--${t.type}`}>
+                        {t.type === 'expense' ? '-' : '+'}₱{parseFloat(t.amount).toLocaleString('en-PH', { minimumFractionDigits: 2 })}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
           </div>
         </div>

@@ -355,3 +355,63 @@
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
+
+/* Recent transactions list inside wallets page */
+.wallets-recent__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.wallets-recent__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.wallets-recent__item:last-child {
+  border-bottom: none;
+}
+
+.wallets-recent__item-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.wallets-recent__badge {
+  font-size: 10px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 999px;
+  text-transform: capitalize;
+}
+
+.wallets-recent__badge--income {
+  background: rgba(74, 222, 128, 0.12);
+  color: #4ade80;
+}
+
+.wallets-recent__badge--expense {
+  background: rgba(248, 113, 113, 0.12);
+  color: #f87171;
+}
+
+.wallets-recent__category {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.wallets-recent__amount {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.wallets-recent__amount--income { color: #4ade80; }
+.wallets-recent__amount--expense { color: #f87171; }

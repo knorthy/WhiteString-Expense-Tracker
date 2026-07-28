@@ -1,6 +1,12 @@
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Sidebar from '../components/Sidebar'
+import IncomeExpenseChart from '../components/IncomeExpenseChart'
+import BreakdownChart from '../components/BreakdownChart'
 import useAuthStore from '../store/authStore'
+import useWalletStore from '../store/walletStore'
+import { getSummary, getTransactions } from '../api/transactions'
+import { getWallets } from '../api/wallets'
+import { WALLET_OPTIONS } from '../constants/wallets'
 import './DashboardPage.css'
 
 function SummaryCard({ label, value, type, icon }) {
@@ -18,17 +24,50 @@ function SummaryCard({ label, value, type, icon }) {
 function DashboardPage() {
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
+  const [summary, setSummary] = useState({
+    total_income: 0,
+    total_expenses: 0,
+    net_revenue: 0,
+  })
+  const [transactions, setTransactions] = useState([])
   const firstName = useAuthStore((state) =>
     state.user?.name ? state.user.name.split(' ')[0] : 'there'
   )
+  const setWallets = useWalletStore((state) => state.setWallets)
+  const wallets = useWalletStore((state) => state.wallets)
+  const totalBalance = wallets.reduce((sum, w) => sum + (parseFloat(w.balance) || 0), 0)
+
+  const loadData = useCallback(async (filters = {}) => {
+    try {
+      const [summaryData, walletData, txnData] = await Promise.all([
+        getSummary(filters),
+        getWallets(),
+        getTransactions(filters),
+      ])
+      setSummary(summaryData)
+      setTransactions(txnData)
+      const enriched = walletData.map((w) => ({
+        ...w,
+        logo: WALLET_OPTIONS.find((o) => o.id === w.wallet_key)?.logo ?? null,
+      }))
+      setWallets(enriched)
+    } catch (err) {
+      console.error(err)
+    }
+  }, [setWallets])
+
+  useEffect(() => {
+    loadData()
+  }, [loadData])
 
   const handleApply = () => {
-    console.log('Filter:', dateFrom, dateTo)
+    if (dateFrom && dateTo) loadData({ date_from: dateFrom, date_to: dateTo })
   }
 
   const handleClear = () => {
     setDateFrom('')
     setDateTo('')
+    loadData()
   }
 
   return (
@@ -99,7 +138,7 @@ function DashboardPage() {
           <div className="summary-cards">
             <SummaryCard
               label="Current Balance"
-              value="₱0.00"
+              value={`₱${totalBalance.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
               type="balance"
               icon={
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -110,7 +149,7 @@ function DashboardPage() {
             />
             <SummaryCard
               label="Total Income"
-              value="₱0.00"
+              value={`₱${parseFloat(summary.total_income).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
               type="income"
               icon={
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -121,7 +160,7 @@ function DashboardPage() {
             />
             <SummaryCard
               label="Total Expenses"
-              value="₱0.00"
+              value={`₱${parseFloat(summary.total_expenses).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
               type="expense"
               icon={
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -137,25 +176,17 @@ function DashboardPage() {
             <div className="chart-card chart-card--wide">
               <h3 className="chart-card__title">Income &amp; Expenses</h3>
               <p className="chart-card__sub">Historical overview of your financial activity</p>
-              <div className="chart-card__empty">
-                <p>No data yet. Add a transaction to get started.</p>
-              </div>
+              <IncomeExpenseChart transactions={transactions} />
             </div>
 
             <div className="chart-card">
               <div className="chart-card__top-row">
                 <div>
                   <h3 className="chart-card__title">Breakdown</h3>
-                  <p className="chart-card__sub">By category color</p>
-                </div>
-                <div className="chart-card__toggle">
-                  <button className="chart-card__toggle-btn chart-card__toggle-btn--active">Expense</button>
-                  <button className="chart-card__toggle-btn">Income</button>
+                  <p className="chart-card__sub">By category</p>
                 </div>
               </div>
-              <div className="chart-card__empty">
-                <p>No expense categories found.</p>
-              </div>
+              <BreakdownChart transactions={transactions} />
             </div>
           </div>
         </main>

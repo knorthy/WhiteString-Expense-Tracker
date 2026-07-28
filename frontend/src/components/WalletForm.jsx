@@ -68,10 +68,9 @@ function WalletForm({ initial, onSubmit, onCancel, isLoading }) {
       return
     }
     onSubmit({
-      walletId: form.walletId,
+      wallet_key: form.walletId,
       name: selectedWallet.name,
       type: selectedWallet.type,
-      logo: selectedWallet.logo,
       balance: parseFloat(form.balance),
     })
   }
