@@ -1,0 +1,145 @@
+.txn-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.txn-form__field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.txn-form__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.txn-form__label {
+  font-family: 'Poppins', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.txn-form__optional {
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 12px;
+}
+
+.txn-form__input,
+.txn-form__select,
+.txn-form__textarea {
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(167, 239, 158, 0.18);
+  border-radius: 8px;
+  padding: 10px 12px;
+  outline: none;
+  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.txn-form__select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.4)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px;
+  cursor: pointer;
+}
+
+.txn-form__select option {
+  background: #1a1b1e;
+  color: #ffffff;
+}
+
+.txn-form__input:focus,
+.txn-form__select:focus,
+.txn-form__textarea:focus {
+  border-color: #a7ef9e;
+  background: rgba(167, 239, 158, 0.05);
+  box-shadow: 0 0 0 3px rgba(167, 239, 158, 0.1);
+}
+
+.txn-form__input--error {
+  border-color: rgba(248, 113, 113, 0.6) !important;
+}
+
+.txn-form__input--error:focus {
+  box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.1) !important;
+}
+
+.txn-form__input::-webkit-calendar-picker-indicator {
+  filter: invert(0.6);
+  cursor: pointer;
+}
+
+.txn-form__input::-webkit-inner-spin-button,
+.txn-form__input::-webkit-outer-spin-button {
+  opacity: 0.4;
+}
+
+.txn-form__textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.txn-form__error {
+  font-family: 'Poppins', sans-serif;
+  font-size: 12px;
+  color: #f87171;
+}
+
+/* Actions */
+.txn-form__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.txn-form__cancel,
+.txn-form__save {
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 9px 22px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+}
+
+.txn-form__cancel {
+  background: rgba(255, 255, 255, 0.07);
+  color: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.txn-form__cancel:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+
+.txn-form__save {
+  background: #a7ef9e;
+  color: #0a0c0a;
+}
+
+.txn-form__save:hover:not(:disabled) {
+  background: #c5f5be;
+  box-shadow: 0 0 14px rgba(167, 239, 158, 0.3);
+  transform: translateY(-1px);
+}
+
+.txn-form__save:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
