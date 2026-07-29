@@ -6,6 +6,7 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js'
+import { formatPHP } from '../utils/currency'
 import './BreakdownChart.css'
 
 Chart.register(PieController, ArcElement, Tooltip, Legend)
@@ -112,7 +113,7 @@ function BreakdownChart({ transactions = [] }) {
               label: (ctx) => {
                 const total = ctx.dataset.data.reduce((a, b) => a + b, 0)
                 const pct = total > 0 ? ((ctx.parsed / total) * 100).toFixed(1) : 0
-                return ` ₱${ctx.parsed.toLocaleString('en-PH', { minimumFractionDigits: 2 })} (${pct}%)`
+                return ` ${formatPHP(ctx.parsed)} (${pct}%)`
               },
             },
           },
