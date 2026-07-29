@@ -1,27 +1,58 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, Navigate } from 'react-router-dom'
 import FaultyTerminal from '../components/FaultyTerminal'
 import claroLogo from '../assets/Claro.png'
-import { login, forgotPassword } from '../api/auth'
+import { login, forgotPassword, verifyResetCode, resetPassword } from '../api/auth'
 import useAuthStore from '../store/authStore'
 import './AuthPage.css'
 
-// ── Forgot Password Modal ─────────────────────────────────
+// ── Forgot Password Modal (2-step OTP) ────────────────────
 function ForgotPasswordModal({ onClose }) {
+  const [step, setStep] = useState('email') // 'email' | 'code' | 'done'
   const [email, setEmail] = useState('')
-  const [sent, setSent] = useState(false)
+  const [code, setCode] = useState('')
+  const [codeStatus, setCodeStatus] = useState('idle') // 'idle' | 'checking' | 'valid' | 'invalid'
+  const [password, setPassword] = useState('')
+  const [passwordConfirm, setPasswordConfirm] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  const handleSubmit = async (e) => {
+  // Step 1 — request OTP
+  const handleSendCode = async (e) => {
     e.preventDefault()
     if (!email.trim()) { setError('Please enter your email address.'); return }
     setLoading(true)
+    setError('')
     try {
       await forgotPassword(email)
-      setSent(true)
+      setStep('code')
     } catch (err) {
       setError(err.response?.data?.message || 'Something went wrong. Please try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Step 2 — verify OTP + set new password
+  const handleReset = async (e) => {
+    e.preventDefault()
+    if (code.length !== 6) { setError('Enter the 6-digit code from your email.'); return }
+    if (codeStatus === 'invalid') { setError('Invalid or expired code. Please check and try again.'); return }
+    if (codeStatus !== 'valid') { setError('Please wait for code verification.'); return }
+    if (password.length < 8) { setError('Password must be at least 8 characters.'); return }
+    if (password !== passwordConfirm) { setError('Passwords do not match.'); return }
+    setLoading(true)
+    setError('')
+    try {
+      await resetPassword({
+        email,
+        code,
+        password,
+        password_confirmation: passwordConfirm,
+      })
+      setStep('done')
+    } catch (err) {
+      setError(err.response?.data?.message || 'Invalid or expired code.')
     } finally {
       setLoading(false)
     }
@@ -36,27 +67,28 @@ function ForgotPasswordModal({ onClose }) {
           </svg>
         </button>
 
-        {sent ? (
+        {/* Done */}
+        {step === 'done' && (
           <div className="forgot-modal__success">
             <div className="forgot-modal__success-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.41 2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.6a16 16 0 0 0 6 6l.94-.94a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21.73 16l.19.92z" />
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 6L9 17l-5-5" />
               </svg>
             </div>
-            <h3 className="forgot-modal__title">Check your email</h3>
-            <p className="forgot-modal__text">
-              If an account exists for <strong>{email}</strong>, we&apos;ve sent a password reset link. Check your inbox.
-            </p>
-            <button className="forgot-modal__btn" onClick={onClose}>Done</button>
+            <h3 className="forgot-modal__title">Password reset!</h3>
+            <p className="forgot-modal__text">Your password has been updated. You can now sign in with your new password.</p>
+            <button className="forgot-modal__btn" onClick={onClose}>Back to Sign In</button>
           </div>
-        ) : (
-          <>
-            <h3 className="forgot-modal__title">Reset your password</h3>
-            <p className="forgot-modal__text">
-              Enter the email address linked to your account and we&apos;ll send you a reset link.
-            </p>
+        )}
 
-            <form onSubmit={handleSubmit} noValidate>
+        {/* Step 1 — Email */}
+        {step === 'email' && (
+          <>
+            <h3 className="forgot-modal__title">Forgot password?</h3>
+            <p className="forgot-modal__text">
+              Enter your email and we&apos;ll send a 6-digit reset code.
+            </p>
+            <form onSubmit={handleSendCode} noValidate>
               <div className="forgot-modal__field">
                 <label className="forgot-modal__label" htmlFor="forgot-email">Email address</label>
                 <input
@@ -71,9 +103,89 @@ function ForgotPasswordModal({ onClose }) {
                 />
                 {error && <span className="forgot-modal__error">{error}</span>}
               </div>
-
               <button type="submit" className="forgot-modal__btn" disabled={loading}>
-                {loading ? 'Sending…' : 'Send Reset Link'}
+                {loading ? 'Sending…' : 'Send Code'}
+              </button>
+            </form>
+          </>
+        )}
+
+        {/* Step 2 — OTP + new password */}
+        {step === 'code' && (
+          <>
+            <h3 className="forgot-modal__title">Enter reset code</h3>
+            <p className="forgot-modal__text">
+              We sent a 6-digit code to <strong>{email}</strong>. Check your Mailtrap inbox and enter it below.
+            </p>
+            <form onSubmit={handleReset} noValidate>
+              <div className="forgot-modal__field">
+                <label className="forgot-modal__label">6-digit code</label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  className={`forgot-modal__input forgot-modal__input--otp${
+                    codeStatus === 'invalid' ? ' forgot-modal__input--error'
+                    : codeStatus === 'valid' ? ' forgot-modal__input--valid'
+                    : ''
+                  }`}
+                  placeholder="000000"
+                  maxLength={6}
+                  value={code}
+                  onChange={async (e) => {
+                    const val = e.target.value.replace(/\D/g, '')
+                    setCode(val)
+                    setError('')
+                    if (val.length === 6) {
+                      setCodeStatus('checking')
+                      try {
+                        await verifyResetCode(email, val)
+                        setCodeStatus('valid')
+                      } catch {
+                        setCodeStatus('invalid')
+                        setError('Invalid or expired code. Please try again.')
+                      }
+                    } else {
+                      setCodeStatus('idle')
+                    }
+                  }}
+                  autoFocus
+                />
+                {codeStatus === 'checking' && <span className="forgot-modal__code-hint">Checking…</span>}
+                {codeStatus === 'valid' && <span className="forgot-modal__code-hint forgot-modal__code-hint--valid">✓ Code verified</span>}
+                {error && codeStatus === 'invalid' && <span className="forgot-modal__error">{error}</span>}
+              </div>
+              <div className="forgot-modal__field">
+                <label className="forgot-modal__label">New password</label>
+                <input
+                  type="password"
+                  className="forgot-modal__input"
+                  placeholder="At least 8 characters"
+                  value={password}
+                  onChange={(e) => { setPassword(e.target.value); setError('') }}
+                  autoComplete="new-password"
+                />
+              </div>
+              <div className="forgot-modal__field">
+                <label className="forgot-modal__label">Confirm password</label>
+                <input
+                  type="password"
+                  className="forgot-modal__input"
+                  placeholder="••••••••"
+                  value={passwordConfirm}
+                  onChange={(e) => { setPasswordConfirm(e.target.value); setError('') }}
+                  autoComplete="new-password"
+                />
+              </div>
+              {error && codeStatus !== 'invalid' && <p className="forgot-modal__error" style={{ marginBottom: 12 }}>{error}</p>}
+              <button type="submit" className="forgot-modal__btn" disabled={loading}>
+                {loading ? 'Resetting…' : 'Reset Password'}
+              </button>
+              <button
+                type="button"
+                className="forgot-modal__back"
+                onClick={() => { setStep('email'); setError('') }}
+              >
+                ← Use a different email
               </button>
             </form>
           </>
@@ -86,11 +198,16 @@ function ForgotPasswordModal({ onClose }) {
 // ── Login Page ────────────────────────────────────────────
 function LoginPage() {
   const navigate = useNavigate()
+  const user = useAuthStore((state) => state.user)
   const setUser = useAuthStore((state) => state.setUser)
   const [form, setForm] = useState({ email: '', password: '' })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [showForgot, setShowForgot] = useState(false)
+
+  if (user && localStorage.getItem('claro_token')) {
+    return <Navigate to="/dashboard" replace />
+  }
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value })
@@ -102,9 +219,9 @@ function LoginPage() {
     setLoading(true)
     setError('')
     try {
-      const { user, token } = await login(form)
+      const { user: loggedInUser, token } = await login(form)
       localStorage.setItem('claro_token', token)
-      setUser(user)
+      setUser(loggedInUser)
       navigate('/dashboard')
     } catch (err) {
       setError(err.response?.data?.message || 'Invalid email or password.')

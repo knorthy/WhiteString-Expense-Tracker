@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, Navigate } from 'react-router-dom'
 import FaultyTerminal from '../components/FaultyTerminal'
 import claroLogo from '../assets/Claro.png'
 import { register } from '../api/auth'
@@ -8,7 +8,13 @@ import './AuthPage.css'
 
 function RegisterPage() {
   const navigate = useNavigate()
+  const user = useAuthStore((state) => state.user)
   const setUser = useAuthStore((state) => state.setUser)
+
+  // Already logged in → redirect to dashboard
+  if (user && localStorage.getItem('claro_token')) {
+    return <Navigate to="/dashboard" replace />
+  }
   const [form, setForm] = useState({
     name: '',
     email: '',

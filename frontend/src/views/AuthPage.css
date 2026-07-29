@@ -387,3 +387,50 @@
   width: 22px;
   height: 22px;
 }
+
+/* OTP code input — large centered digits */
+.forgot-modal__input--otp {
+  text-align: center;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: 12px;
+  padding: 12px;
+}
+
+/* Back link */
+.forgot-modal__back {
+  display: block;
+  width: 100%;
+  margin-top: 12px;
+  background: none;
+  border: none;
+  font-family: 'Poppins', sans-serif;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  text-align: center;
+  transition: color 0.2s ease;
+}
+
+.forgot-modal__back:hover {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* Valid code input state */
+.forgot-modal__input--valid {
+  border-color: #4ade80 !important;
+  box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.12) !important;
+}
+
+/* Code status hint */
+.forgot-modal__code-hint {
+  font-family: 'Poppins', sans-serif;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.4);
+  margin-top: 4px;
+  display: block;
+}
+
+.forgot-modal__code-hint--valid {
+  color: #4ade80;
+}

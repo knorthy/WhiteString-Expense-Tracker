@@ -43,6 +43,7 @@ const EXPENSE_CATEGORIES = ['Food', 'Transport', 'Rent', 'Utilities', 'Healthcar
 function GeneralSection() {
   const user = useAuthStore((state) => state.user)
   const setUser = useAuthStore((state) => state.setUser)
+  const setAvatar = useAuthStore((state) => state.setAvatar)
   const currency = useCurrencyStore((state) => state.currency)
   const setCurrency = useCurrencyStore((state) => state.setCurrency)
   const [name, setName] = useState(user?.name || '')
@@ -60,13 +61,13 @@ function GeneralSection() {
     reader.onload = (ev) => {
       const url = ev.target.result
       setAvatarUrl(url)
-      setUser({ ...user, avatar: url })
+      setAvatar(url) // persists keyed by email, survives logout
     }
     reader.readAsDataURL(file)
   }
 
   const handleSave = () => {
-    setUser({ ...user, name, avatar: avatarUrl })
+    setUser({ ...user, name })
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
   }

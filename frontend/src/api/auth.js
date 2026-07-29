@@ -15,5 +15,8 @@ export const getMe = () =>
 export const forgotPassword = (email) =>
   client.post('/forgot-password', { email }).then((r) => r.data)
 
+export const verifyResetCode = (email, code) =>
+  client.post('/verify-reset-code', { email, code }).then((r) => r.data)
+
 export const resetPassword = (data) =>
   client.post('/reset-password', data).then((r) => r.data)
