@@ -8,6 +8,7 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js'
+import { formatPHP } from '../utils/currency'
 import './IncomeExpenseChart.css'
 
 Chart.register(BarController, BarElement, CategoryScale, LinearScale, Tooltip, Legend)
@@ -117,7 +118,7 @@ function IncomeExpenseChart({ transactions = [] }) {
             bodyFont: { family: 'Poppins', size: 12 },
             callbacks: {
               label: (ctx) =>
-                ` ${ctx.dataset.label}: ₱${ctx.parsed.y.toLocaleString('en-PH', { minimumFractionDigits: 2 })}`,
+                ` ${ctx.dataset.label}: ${formatPHP(ctx.parsed.y)}`,
             },
           },
         },
@@ -134,7 +135,7 @@ function IncomeExpenseChart({ transactions = [] }) {
             ticks: {
               color: 'rgba(255,255,255,0.5)',
               font: { family: 'Poppins', size: 12 },
-              callback: (v) => `₱${v.toLocaleString('en-PH')}`,
+              callback: (v) => formatPHP(v),
             },
             beginAtZero: true,
           },

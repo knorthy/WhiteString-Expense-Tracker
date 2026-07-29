@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
 use App\Models\User;
+use App\Models\UserActivityLog;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
@@ -24,6 +25,13 @@ class AuthController extends Controller
         ]);
 
         $token = $user->createToken('auth_token')->plainTextToken;
+
+        UserActivityLog::create([
+            'user_id'    => $user->id,
+            'action'     => 'register',
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
 
         return response()->json([
             'user'  => $user,
@@ -45,6 +53,13 @@ class AuthController extends Controller
         $user  = Auth::user();
         $token = $user->createToken('auth_token')->plainTextToken;
 
+        UserActivityLog::create([
+            'user_id'    => $user->id,
+            'action'     => 'login',
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
+
         return response()->json([
             'user'  => $user,
             'token' => $token,
@@ -56,7 +71,16 @@ class AuthController extends Controller
      */
     public function logout(Request $request): JsonResponse
     {
+        $userId = $request->user()->id;
+
         $request->user()->currentAccessToken()->delete();
+
+        UserActivityLog::create([
+            'user_id'    => $userId,
+            'action'     => 'logout',
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
 
         return response()->json(['message' => 'Logged out.']);
     }

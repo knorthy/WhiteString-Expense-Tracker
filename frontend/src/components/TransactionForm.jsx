@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { formatPHP } from '../utils/currency'
 import './TransactionForm.css'
 
 const INCOME_CATEGORIES = [
@@ -61,7 +62,7 @@ function TransactionForm({ initial, wallets = [], onSubmit, onCancel, isLoading 
     if (form.type === 'expense' && form.walletId && form.amount) {
       const wallet = wallets.find((w) => String(w.id) === String(form.walletId))
       if (wallet && parseFloat(form.amount) > parseFloat(wallet.balance)) {
-        e.amount = `Insufficient balance. ${wallet.name} only has ₱${parseFloat(wallet.balance).toLocaleString('en-PH', { minimumFractionDigits: 2 })} available.`
+        e.amount = `Insufficient balance. ${wallet.name} only has ${formatPHP(wallet.balance)} available.`
       }
     }
 
@@ -162,7 +163,7 @@ function TransactionForm({ initial, wallets = [], onSubmit, onCancel, isLoading 
             Amount
             {form.type === 'expense' && selectedWallet && (
               <span className="txn-form__balance-hint">
-                Available: ₱{parseFloat(selectedWallet.balance).toLocaleString('en-PH', { minimumFractionDigits: 2 })}
+                Available: {formatPHP(selectedWallet.balance)}
               </span>
             )}
           </label>
