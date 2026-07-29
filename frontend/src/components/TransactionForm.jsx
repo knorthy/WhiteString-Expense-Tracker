@@ -207,9 +207,13 @@ function TransactionForm({ initial, wallets = [], onSubmit, onCancel, isLoading 
           className="txn-form__textarea"
           placeholder="Notes..."
           rows={3}
+          maxLength={500}
           value={form.description}
           onChange={handleChange}
         />
+        {form.description?.length > 400 && (
+          <span className="txn-form__char-count">{form.description.length}/500</span>
+        )}
       </div>
 
       {/* Actions */}

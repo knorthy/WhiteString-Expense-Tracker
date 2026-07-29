@@ -173,7 +173,8 @@ function WalletsPage() {
       setAddModalOpen(false)
       toast.success('Wallet added successfully.')
     } catch (err) {
-      console.error(err)
+      const msg = err.response?.data?.message || 'Failed to add wallet.'
+      toast.error(msg)
     } finally {
       setIsLoading(false)
     }
@@ -187,7 +188,8 @@ function WalletsPage() {
       setAdjustTarget(null)
       toast.success('Balance updated.')
     } catch (err) {
-      console.error(err)
+      const msg = err.response?.data?.message || 'Failed to update balance.'
+      toast.error(msg)
     } finally {
       setIsLoading(false)
     }

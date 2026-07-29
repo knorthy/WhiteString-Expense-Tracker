@@ -33,7 +33,15 @@ function CategoryForm({ initial, onSubmit, onCancel, isLoading }) {
 
   const validate = () => {
     const e = {}
-    if (!form.name.trim()) e.name = 'Category name is required.'
+    if (!form.name.trim()) {
+      e.name = 'Category name is required.'
+    } else if (form.name.trim().length < 2) {
+      e.name = 'Category name must be at least 2 characters.'
+    } else if (form.name.trim().length > 50) {
+      e.name = 'Category name must be 50 characters or less.'
+    } else if (/[<>{}[\]\\\/]/.test(form.name)) {
+      e.name = 'Category name contains invalid characters.'
+    }
     if (!form.type) e.type = 'Type is required.'
     return e
   }
@@ -56,10 +64,15 @@ function CategoryForm({ initial, onSubmit, onCancel, isLoading }) {
         <input
           name="name"
           type="text"
+          maxLength={50}
           className={`cat-form__input${errors.name ? ' cat-form__input--error' : ''}`}
-          placeholder="e.g. BTEQM, Groceries"
+          placeholder="e.g. Groceries, Side Income"
           value={form.name}
-          onChange={handleChange}
+          onChange={(e) => {
+            const val = e.target.value.replace(/[<>{}[\]\\\/]/g, '')
+            setForm((prev) => ({ ...prev, name: val }))
+            setErrors((prev) => ({ ...prev, name: '' }))
+          }}
         />
         {errors.name && <span className="cat-form__error">{errors.name}</span>}
       </div>

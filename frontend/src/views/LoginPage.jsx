@@ -22,6 +22,7 @@ function ForgotPasswordModal({ onClose }) {
   const handleSendCode = async (e) => {
     e.preventDefault()
     if (!email.trim()) { setError('Please enter your email address.'); return }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) { setError('Please enter a valid email address.'); return }
     setLoading(true)
     setError('')
     try {
@@ -218,6 +219,9 @@ function LoginPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    if (!form.email.trim()) { setError('Email is required.'); return }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) { setError('Please enter a valid email address.'); return }
+    if (!form.password) { setError('Password is required.'); return }
     setLoading(true)
     setError('')
     try {
