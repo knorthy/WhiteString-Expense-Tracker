@@ -6,6 +6,7 @@ import useWalletStore from '../store/walletStore'
 import useCurrencyStore from '../store/currencyStore'
 import { getTransactions, createTransaction, updateTransaction, deleteTransaction } from '../api/transactions'
 import { getWallets } from '../api/wallets'
+import { toast } from '../store/toastStore'
 import './TransactionsPage.css'
 
 const TYPE_OPTIONS = ['All', 'income', 'expense']
@@ -59,9 +60,11 @@ function TransactionsPage() {
       if (editTarget) {
         const updated = await updateTransaction(editTarget.id, formData)
         setTransactions((prev) => prev.map((t) => (t.id === updated.id ? updated : t)))
+        toast.success('Transaction updated successfully.')
       } else {
         const created = await createTransaction(formData)
         setTransactions((prev) => [created, ...prev])
+        toast.success('Transaction added successfully.')
       }
       // Refresh wallets so balance updates instantly
       const walletData = await getWallets()
@@ -69,6 +72,8 @@ function TransactionsPage() {
       closeModal()
     } catch (err) {
       console.error(err)
+      const msg = err.response?.data?.message || 'Failed to save transaction.'
+      toast.error(msg)
     } finally {
       setIsLoading(false)
     }
@@ -80,8 +85,10 @@ function TransactionsPage() {
       setTransactions((prev) => prev.filter((t) => t.id !== id))
       const walletData = await getWallets()
       setWallets(walletData)
+      toast.success('Transaction deleted.')
     } catch (err) {
       console.error(err)
+      toast.error('Failed to delete transaction.')
     }
   }
 

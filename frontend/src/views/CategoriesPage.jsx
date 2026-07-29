@@ -2,6 +2,7 @@ import { useState } from 'react'
 import Sidebar from '../components/Sidebar'
 import Modal from '../components/Modal'
 import CategoryForm from '../components/CategoryForm'
+import { toast } from '../store/toastStore'
 import './CategoriesPage.css'
 
 const DEFAULT_INCOME = [
@@ -51,11 +52,13 @@ function CategoriesPage() {
         setCategories((prev) =>
           prev.map((c) => (c.id === editTarget.id ? { ...c, ...formData } : c))
         )
+        toast.success('Category updated.')
       } else {
         setCategories((prev) => [
           ...prev,
           { ...formData, id: `custom-${Date.now()}` },
         ])
+        toast.success('Category added.')
       }
       closeModal()
     } finally {
@@ -64,8 +67,8 @@ function CategoriesPage() {
   }
 
   const handleDelete = (id) => {
-    // prevent deleting default categories
     setCategories((prev) => prev.filter((c) => c.id !== id))
+    toast.success('Category deleted.')
   }
 
   return (

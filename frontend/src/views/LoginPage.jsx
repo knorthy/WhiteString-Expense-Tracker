@@ -4,6 +4,7 @@ import FaultyTerminal from '../components/FaultyTerminal'
 import claroLogo from '../assets/Claro.png'
 import { login, forgotPassword, verifyResetCode, resetPassword } from '../api/auth'
 import useAuthStore from '../store/authStore'
+import { toast } from '../store/toastStore'
 import './AuthPage.css'
 
 // ── Forgot Password Modal (2-step OTP) ────────────────────
@@ -51,6 +52,7 @@ function ForgotPasswordModal({ onClose }) {
         password_confirmation: passwordConfirm,
       })
       setStep('done')
+      toast.success('Password reset successfully. You can now sign in.')
     } catch (err) {
       setError(err.response?.data?.message || 'Invalid or expired code.')
     } finally {
@@ -222,6 +224,7 @@ function LoginPage() {
       const { user: loggedInUser, token } = await login(form)
       localStorage.setItem('claro_token', token)
       setUser(loggedInUser)
+      toast.success(`Welcome back, ${loggedInUser.name.split(' ')[0]}!`)
       navigate('/dashboard')
     } catch (err) {
       setError(err.response?.data?.message || 'Invalid email or password.')

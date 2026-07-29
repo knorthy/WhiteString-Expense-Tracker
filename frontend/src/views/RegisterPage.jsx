@@ -4,6 +4,7 @@ import FaultyTerminal from '../components/FaultyTerminal'
 import claroLogo from '../assets/Claro.png'
 import { register } from '../api/auth'
 import useAuthStore from '../store/authStore'
+import { toast } from '../store/toastStore'
 import './AuthPage.css'
 
 function RegisterPage() {
@@ -31,8 +32,20 @@ function RegisterPage() {
 
   const validate = () => {
     const e = {}
-    if (!form.name.trim()) e.name = 'Name is required.'
-    if (!form.email.trim()) e.email = 'Email is required.'
+    if (!form.name.trim()) {
+      e.name = 'Name is required.'
+    } else if (!/^[a-zA-ZÀ-ÖØ-öø-ÿ\s'\-\.]+$/.test(form.name.trim())) {
+      e.name = 'Name can only contain letters, spaces, hyphens, and apostrophes.'
+    } else if (form.name.trim().length < 2) {
+      e.name = 'Name must be at least 2 characters.'
+    }
+
+    if (!form.email.trim()) {
+      e.email = 'Email is required.'
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
+      e.email = 'Please enter a valid email address.'
+    }
+
     if (form.password.length < 8) e.password = 'Password must be at least 8 characters.'
     if (form.password !== form.password_confirmation)
       e.password_confirmation = 'Passwords do not match.'
@@ -51,6 +64,7 @@ function RegisterPage() {
       const { user, token } = await register(form)
       localStorage.setItem('claro_token', token)
       setUser(user)
+      toast.success(`Welcome to Claro, ${user.name.split(' ')[0]}!`)
       navigate('/dashboard')
     } catch (err) {
       const serverErrors = err.response?.data?.errors || {}
@@ -107,7 +121,12 @@ function RegisterPage() {
                 className={`auth-form__input${errors.name ? ' auth-form__input--error' : ''}`}
                 placeholder="Your full name"
                 value={form.name}
-                onChange={handleChange}
+                onChange={(e) => {
+                  // Only allow letters, spaces, hyphens, apostrophes
+                  const val = e.target.value.replace(/[^a-zA-ZÀ-ÖØ-öø-ÿ\s'\-\.]/g, '')
+                  setForm({ ...form, name: val })
+                  setErrors({ ...errors, name: '' })
+                }}
               />
               {errors.name && <span className="auth-form__field-error">{errors.name}</span>}
             </div>

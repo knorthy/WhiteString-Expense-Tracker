@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import useAuthStore from '../store/authStore'
 import useCurrencyStore, { CURRENCY_OPTIONS } from '../store/currencyStore'
 import { getTransactions } from '../api/transactions'
+import { toast } from '../store/toastStore'
 import './SettingsModal.css'
 
 const SECTIONS = [
@@ -61,7 +62,8 @@ function GeneralSection() {
     reader.onload = (ev) => {
       const url = ev.target.result
       setAvatarUrl(url)
-      setAvatar(url) // persists keyed by email, survives logout
+      setAvatar(url)
+      toast.success('Avatar updated.')
     }
     reader.readAsDataURL(file)
   }
@@ -69,6 +71,7 @@ function GeneralSection() {
   const handleSave = () => {
     setUser({ ...user, name })
     setSaved(true)
+    toast.success('Name saved.')
     setTimeout(() => setSaved(false), 2000)
   }
 
@@ -111,7 +114,10 @@ function GeneralSection() {
           className="settings-input"
           type="text"
           value={name}
-          onChange={(e) => setName(e.target.value)}
+          onChange={(e) => {
+            const val = e.target.value.replace(/[^a-zA-ZÀ-ÖØ-öø-ÿ\s'\-\.]/g, '')
+            setName(val)
+          }}
           placeholder="Your full name"
         />
       </div>
@@ -137,7 +143,7 @@ function GeneralSection() {
           id="settings-currency"
           className="settings-select"
           value={currency}
-          onChange={(e) => setCurrency(e.target.value)}
+          onChange={(e) => { setCurrency(e.target.value); toast.info(`Currency changed to ${e.target.value}.`) }}
         >
           {CURRENCY_OPTIONS.map((c) => (
             <option key={c.code} value={c.code}>{c.label}</option>
@@ -168,6 +174,7 @@ function SecuritySection() {
     if (form.password !== form.password_confirmation) { setError('Passwords do not match.'); return }
     // TODO: PATCH /api/user/password
     setSaved(true)
+    toast.success('Password updated successfully.')
     setForm({ current_password: '', password: '', password_confirmation: '' })
     setTimeout(() => setSaved(false), 2500)
   }
@@ -232,10 +239,35 @@ function PrivacySection() {
       if (exportType === 'income') filters.type = 'income'
       if (exportType === 'expense') filters.type = 'expense'
       if (exportType === 'category' && exportCategory) filters.category = exportCategory
+
+      // Date validation
+      const today = new Date().toISOString().slice(0, 10)
+      if (exportDateFrom && exportDateFrom > today) {
+        toast.error('From date cannot be in the future.')
+        setExporting(false)
+        return
+      }
+      if (exportDateTo && exportDateTo > today) {
+        toast.error('To date cannot be in the future.')
+        setExporting(false)
+        return
+      }
+      if (exportDateFrom && exportDateTo && exportDateFrom > exportDateTo) {
+        toast.error('"From" date must be before "To" date.')
+        setExporting(false)
+        return
+      }
+
       if (exportDateFrom) filters.date_from = exportDateFrom
       if (exportDateTo) filters.date_to = exportDateTo
 
       const data = await getTransactions(filters)
+
+      if (data.length === 0) {
+        toast.error('No transactions found for the selected filters.')
+        setExporting(false)
+        return
+      }
 
       // Build CSV
       const headers = ['Date', 'Type', 'Category', 'Amount', 'Description']
@@ -257,8 +289,10 @@ function PrivacySection() {
       link.click()
       document.body.removeChild(link)
       URL.revokeObjectURL(url)
+      toast.success('Data exported successfully.')
     } catch (err) {
       console.error(err)
+      toast.error('Export failed. Please try again.')
     } finally {
       setExporting(false)
     }
@@ -373,7 +407,11 @@ function PrivacySection() {
           <p>Are you sure? This will permanently delete your account and all transactions.</p>
           <div className="settings-danger-confirm__actions">
             <button className="settings-outline-btn" onClick={() => setDeleteConfirm(false)}>Cancel</button>
-            <button className="settings-danger-btn" onClick={() => setDeleteConfirm(false)}>Yes, delete my account</button>
+            <button className="settings-danger-btn" onClick={() => {
+              // TODO: DELETE /api/user
+              toast.info('Account deletion is not yet implemented.')
+              setDeleteConfirm(false)
+            }}>Yes, delete my account</button>
           </div>
         </div>
       )}
