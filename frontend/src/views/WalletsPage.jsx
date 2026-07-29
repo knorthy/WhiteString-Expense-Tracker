@@ -7,6 +7,7 @@ import useCurrencyStore from '../store/currencyStore'
 import { WALLET_OPTIONS } from '../constants/wallets'
 import { getWallets, createWallet, updateWalletBalance, deleteWallet } from '../api/wallets'
 import { getTransactions } from '../api/transactions'
+import { toast } from '../store/toastStore'
 import './WalletsPage.css'
 
 // 3-dot context menu per card
@@ -82,6 +83,10 @@ function AdjustBalanceForm({ wallet, onSubmit, onCancel, isLoading }) {
       setError('Enter a valid balance.')
       return
     }
+    if (parseFloat(balance) < 0) {
+      setError('Balance cannot be negative.')
+      return
+    }
     onSubmit(parseFloat(balance))
   }
 
@@ -99,12 +104,16 @@ function AdjustBalanceForm({ wallet, onSubmit, onCancel, isLoading }) {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         <label className="wallet-form__label">New Balance</label>
         <input
-          type="number"
-          step="0.01"
+          type="text"
+          inputMode="decimal"
           className={`wallet-form__input${error ? ' wallet-form__input--error' : ''}`}
           placeholder="0.00"
           value={balance}
-          onChange={(e) => { setBalance(e.target.value); setError('') }}
+          onChange={(e) => {
+            const val = e.target.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1')
+            setBalance(val)
+            setError('')
+          }}
           autoFocus
         />
         {error && <span style={{ fontSize: 12, color: '#f87171', fontFamily: 'Poppins, sans-serif' }}>{error}</span>}
@@ -162,8 +171,10 @@ function WalletsPage() {
       }
       setWallets([...wallets, enriched])
       setAddModalOpen(false)
+      toast.success('Wallet added successfully.')
     } catch (err) {
-      console.error(err)
+      const msg = err.response?.data?.message || 'Failed to add wallet.'
+      toast.error(msg)
     } finally {
       setIsLoading(false)
     }
@@ -175,8 +186,10 @@ function WalletsPage() {
       const updated = await updateWalletBalance(adjustTarget.id, newBalance)
       setWallets(wallets.map((w) => w.id === updated.id ? { ...w, balance: updated.balance } : w))
       setAdjustTarget(null)
+      toast.success('Balance updated.')
     } catch (err) {
-      console.error(err)
+      const msg = err.response?.data?.message || 'Failed to update balance.'
+      toast.error(msg)
     } finally {
       setIsLoading(false)
     }
@@ -186,8 +199,10 @@ function WalletsPage() {
     try {
       await deleteWallet(id)
       setWallets(wallets.filter((w) => w.id !== id))
+      toast.success('Wallet deleted.')
     } catch (err) {
       console.error(err)
+      toast.error('Failed to delete wallet.')
     }
   }
 

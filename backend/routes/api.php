@@ -15,8 +15,9 @@ use Illuminate\Support\Facades\Route;
 // Public auth routes
 Route::post('/register',        [AuthController::class, 'register']);
 Route::post('/login',           [AuthController::class, 'login']);
-Route::post('/forgot-password', [PasswordResetController::class, 'forgotPassword']);
-Route::post('/reset-password',  [PasswordResetController::class, 'resetPassword']);
+Route::post('/forgot-password',   [PasswordResetController::class, 'forgotPassword']);
+Route::post('/verify-reset-code', [PasswordResetController::class, 'verifyResetCode']);
+Route::post('/reset-password',    [PasswordResetController::class, 'resetPassword']);
 
 // Protected routes — require Sanctum token
 Route::middleware('auth:sanctum')->group(function () {

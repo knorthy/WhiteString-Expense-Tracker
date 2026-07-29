@@ -56,7 +56,20 @@ function TransactionForm({ initial, wallets = [], onSubmit, onCancel, isLoading 
     if (!form.category) e.category = 'Category is required.'
     if (!form.amount || isNaN(form.amount) || Number(form.amount) <= 0)
       e.amount = 'Enter a valid amount greater than 0.'
-    if (!form.date) e.date = 'Date is required.'
+
+    // Insufficient balance check — only for expense transactions
+    if (form.type === 'expense' && form.walletId && form.amount) {
+      const wallet = wallets.find((w) => String(w.id) === String(form.walletId))
+      if (wallet && parseFloat(form.amount) > parseFloat(wallet.balance)) {
+        e.amount = `Insufficient balance. ${wallet.name} only has ₱${parseFloat(wallet.balance).toLocaleString('en-PH', { minimumFractionDigits: 2 })} available.`
+      }
+    }
+
+    if (!form.date) {
+      e.date = 'Date is required.'
+    } else if (form.date > new Date().toISOString().slice(0, 10)) {
+      e.date = 'Date cannot be in the future.'
+    }
     if (!form.walletId) e.walletId = 'Please select a wallet.'
     return e
   }
@@ -145,7 +158,14 @@ function TransactionForm({ initial, wallets = [], onSubmit, onCancel, isLoading 
       {/* Amount + Date */}
       <div className="txn-form__row">
         <div className="txn-form__field">
-          <label className="txn-form__label">Amount</label>
+          <label className="txn-form__label">
+            Amount
+            {form.type === 'expense' && selectedWallet && (
+              <span className="txn-form__balance-hint">
+                Available: ₱{parseFloat(selectedWallet.balance).toLocaleString('en-PH', { minimumFractionDigits: 2 })}
+              </span>
+            )}
+          </label>
           <input
             name="amount"
             type="number"
@@ -154,7 +174,11 @@ function TransactionForm({ initial, wallets = [], onSubmit, onCancel, isLoading 
             className={`txn-form__input${errors.amount ? ' txn-form__input--error' : ''}`}
             placeholder="0.00"
             value={form.amount}
-            onChange={handleChange}
+            onChange={(e) => {
+              // Strip anything that isn't a digit or single decimal point
+              const val = e.target.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1')
+              handleChange({ target: { name: 'amount', value: val } })
+            }}
           />
           {errors.amount && <span className="txn-form__error">{errors.amount}</span>}
         </div>
@@ -164,6 +188,7 @@ function TransactionForm({ initial, wallets = [], onSubmit, onCancel, isLoading 
           <input
             name="date"
             type="date"
+            max={new Date().toISOString().slice(0, 10)}
             className={`txn-form__input${errors.date ? ' txn-form__input--error' : ''}`}
             value={form.date}
             onChange={handleChange}
@@ -182,9 +207,13 @@ function TransactionForm({ initial, wallets = [], onSubmit, onCancel, isLoading 
           className="txn-form__textarea"
           placeholder="Notes..."
           rows={3}
+          maxLength={500}
           value={form.description}
           onChange={handleChange}
         />
+        {form.description?.length > 400 && (
+          <span className="txn-form__char-count">{form.description.length}/500</span>
+        )}
       </div>
 
       {/* Actions */}

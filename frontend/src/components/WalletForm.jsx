@@ -134,13 +134,14 @@ function WalletForm({ initial, onSubmit, onCancel, isLoading }) {
         <label className="wallet-form__label">Current Balance</label>
         <input
           name="balance"
-          type="number"
-          step="0.01"
+          type="text"
+          inputMode="decimal"
           className={`wallet-form__input${errors.balance ? ' wallet-form__input--error' : ''}`}
           placeholder="0.00"
           value={form.balance}
           onChange={(e) => {
-            setForm((prev) => ({ ...prev, balance: e.target.value }))
+            const val = e.target.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1')
+            setForm((prev) => ({ ...prev, balance: val }))
             setErrors((prev) => ({ ...prev, balance: '' }))
           }}
         />

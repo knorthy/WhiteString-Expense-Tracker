@@ -17,8 +17,21 @@ class TransactionService
     public function create(User $user, array $data): Transaction
     {
         return DB::transaction(function () use ($user, $data) {
-            $transaction = $user->transactions()->create($data);
+            // Check sufficient balance for expense transactions
+            if ($data['type'] === 'expense' && !empty($data['wallet_id'])) {
+                $wallet = $user->wallets()->findOrFail($data['wallet_id']);
+                if ((float) $wallet->balance < (float) $data['amount']) {
+                    throw new \Illuminate\Validation\ValidationException(
+                        \Illuminate\Support\Facades\Validator::make([], []),
+                        response()->json([
+                            'message' => 'Insufficient balance. ' . $wallet->name . ' only has ₱' . number_format($wallet->balance, 2) . ' available.',
+                            'errors'  => ['amount' => ['Insufficient balance in selected wallet.']],
+                        ], 422)
+                    );
+                }
+            }
 
+            $transaction = $user->transactions()->create($data);
             $this->adjustWalletBalance($user, $data['wallet_id'] ?? null, $data['type'], (float) $data['amount'], 'add');
 
             return $transaction;
@@ -37,12 +50,27 @@ class TransactionService
         return DB::transaction(function () use ($user, $id, $data) {
             $transaction = $user->transactions()->findOrFail($id);
 
-            // Reverse the old effect on the old wallet
+            // Reverse the old effect first so we can re-check balance accurately
             $this->adjustWalletBalance($user, $transaction->wallet_id, $transaction->type, (float) $transaction->amount, 'reverse');
 
-            $transaction->update($data);
+            // Check balance for expense after reversing old effect
+            if ($data['type'] === 'expense' && !empty($data['wallet_id'])) {
+                $wallet = $user->wallets()->findOrFail($data['wallet_id']);
+                $walletAfterReversal = (float) $wallet->fresh()->balance;
+                if ($walletAfterReversal < (float) $data['amount']) {
+                    // Re-apply the original to keep data consistent
+                    $this->adjustWalletBalance($user, $transaction->wallet_id, $transaction->type, (float) $transaction->amount, 'add');
+                    throw new \Illuminate\Validation\ValidationException(
+                        \Illuminate\Support\Facades\Validator::make([], []),
+                        response()->json([
+                            'message' => 'Insufficient balance. ' . $wallet->name . ' only has ₱' . number_format($walletAfterReversal, 2) . ' available.',
+                            'errors'  => ['amount' => ['Insufficient balance in selected wallet.']],
+                        ], 422)
+                    );
+                }
+            }
 
-            // Apply the new effect on the (possibly new) wallet
+            $transaction->update($data);
             $this->adjustWalletBalance($user, $data['wallet_id'] ?? null, $data['type'], (float) $data['amount'], 'add');
 
             return $transaction->fresh();

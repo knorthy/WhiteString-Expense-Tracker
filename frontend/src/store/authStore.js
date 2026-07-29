@@ -1,19 +1,55 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
+// Avatar is stored separately keyed by email so it survives logout
+const AVATAR_KEY = 'claro-avatars'
+
+const getAvatarForEmail = (email) => {
+  if (!email) return null
+  try {
+    const map = JSON.parse(localStorage.getItem(AVATAR_KEY) || '{}')
+    return map[email] ?? null
+  } catch {
+    return null
+  }
+}
+
+const saveAvatarForEmail = (email, dataUrl) => {
+  if (!email) return
+  try {
+    const map = JSON.parse(localStorage.getItem(AVATAR_KEY) || '{}')
+    map[email] = dataUrl
+    localStorage.setItem(AVATAR_KEY, JSON.stringify(map))
+  } catch {
+    // localStorage may be full if the image is too large
+  }
+}
+
 const useAuthStore = create(
   persist(
-    (set) => ({
+    (set, get) => ({
       user: null, // { id, name, email }
 
-      setUser: (user) => set({ user }),
+      setUser: (user) => {
+        if (!user) { set({ user: null }); return }
+        // Restore avatar from persistent storage if not already on user
+        const avatar = user.avatar ?? getAvatarForEmail(user.email)
+        set({ user: { ...user, avatar } })
+      },
+
+      setAvatar: (dataUrl) => {
+        const { user } = get()
+        if (!user) return
+        saveAvatarForEmail(user.email, dataUrl)
+        set({ user: { ...user, avatar: dataUrl } })
+      },
 
       clearUser: () => {
+        // Keep avatar in localStorage — only clear auth
         set({ user: null })
         localStorage.removeItem('claro_token')
       },
 
-      // Helper — returns just the first name
       getFirstName: () => {
         const state = useAuthStore.getState()
         if (!state.user?.name) return 'there'
@@ -21,8 +57,8 @@ const useAuthStore = create(
       },
     }),
     {
-      name: 'claro-auth', // key in localStorage
-      partialize: (state) => ({ user: state.user }), // only persist user
+      name: 'claro-auth',
+      partialize: (state) => ({ user: state.user }),
     }
   )
 )
