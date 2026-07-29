@@ -77,7 +77,7 @@ function LandingPage() {
           <p className="features-section__subtitle">
             Built for people tired of guessing where their money went. Claro started as a simple idea: personal finance shouldn't require a spreadsheet degree.
           </p>
-          <a href="#how-to-use" className="features-section__btn">
+          <a href="https://app.supademo.com/demo/cms6531hp05a2100j3ck1kx07?utm_source=link" target="_blank" rel="noopener noreferrer" className="features-section__btn">
             How to use Claro
           </a>
         </div>
@@ -174,7 +174,7 @@ function LandingPage() {
               </div>
               <nav className="footer__links" aria-label="Footer navigation">
                 <a href="/register" className="footer__link">Get Started</a>
-                <a href="#how-to-use" className="footer__link">How to Use</a>
+                <a href="https://app.supademo.com/demo/cms6531hp05a2100j3ck1kx07?utm_source=link" target="_blank" rel="noopener noreferrer" className="footer__link">How to Use</a>
                 <a
                   href="https://github.com/knorthy/WhiteString-Expense-Tracker"
                   target="_blank"
