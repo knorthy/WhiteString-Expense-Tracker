@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+// maps to wallets table, used by WalletController and TransactionService
 class Wallet extends Model
 {
     use HasFactory;
@@ -25,6 +26,7 @@ class Wallet extends Model
         ];
     }
 
+    // reads users table, used when accessing wallet owner
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

@@ -1,17 +1,21 @@
 import { create } from 'zustand'
 
+// global toast store, not persisted
+// used across all pages and components via the toast helper below
 const useToastStore = create((set) => ({
   toasts: [],
 
+  // adds a toast to the list, max 2 at a time, auto removes after duration
+  // called via toast.success / toast.error / toast.info helpers
   addToast: ({ message, type = 'success', duration = 3500 }) => {
     const id = Date.now() + Math.random()
 
     set((state) => {
-      // Don't add if the same message is already showing
+      // skip if same message and type is already showing
       const alreadyShowing = state.toasts.some((t) => t.message === message && t.type === type)
       if (alreadyShowing) return state
 
-      // Keep max 2 toasts — remove oldest if at limit
+      // drop oldest if already at limit of 2
       const current = state.toasts.length >= 2
         ? state.toasts.slice(1)
         : state.toasts
@@ -19,7 +23,7 @@ const useToastStore = create((set) => ({
       return { toasts: [...current, { id, message, type }] }
     })
 
-    // Auto-remove after duration
+    // auto remove after duration ms
     setTimeout(() => {
       set((state) => ({
         toasts: state.toasts.filter((t) => t.id !== id),
@@ -27,13 +31,17 @@ const useToastStore = create((set) => ({
     }, duration)
   },
 
+  // removes a single toast by id, called by the X button in ToastContainer.jsx
   removeToast: (id) =>
     set((state) => ({
       toasts: state.toasts.filter((t) => t.id !== id),
     })),
 }))
 
-// Convenience helpers — call these anywhere without needing the hook
+// shorthand helpers used directly in any file without needing the hook
+// toast.success used in RegisterPage.jsx, LoginPage.jsx, WalletsPage.jsx, TransactionsPage.jsx, SettingsModal.jsx, CategoriesPage.jsx
+// toast.error used in WalletsPage.jsx, TransactionsPage.jsx, SettingsModal.jsx
+// toast.info used in SettingsModal.jsx, LoginPage.jsx
 export const toast = {
   success: (message) => useToastStore.getState().addToast({ message, type: 'success' }),
   error:   (message) => useToastStore.getState().addToast({ message, type: 'error' }),

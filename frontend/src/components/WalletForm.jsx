@@ -7,6 +7,8 @@ const DEFAULT_FORM = {
   balance: '',
 }
 
+// form used inside Modal in WalletsPage.jsx for adding a new wallet
+// uses a searchable dropdown to pick from the WALLET_OPTIONS constant list
 function WalletForm({ initial, onSubmit, onCancel, isLoading }) {
   const [form, setForm] = useState(initial || DEFAULT_FORM)
   const [search, setSearch] = useState('')
@@ -14,6 +16,7 @@ function WalletForm({ initial, onSubmit, onCancel, isLoading }) {
   const [errors, setErrors] = useState({})
   const dropdownRef = useRef(null)
 
+  // resets form when initial changes
   useEffect(() => {
     setForm(initial || DEFAULT_FORM)
     const found = WALLET_OPTIONS.find((w) => w.id === initial?.walletId)
@@ -21,7 +24,7 @@ function WalletForm({ initial, onSubmit, onCancel, isLoading }) {
     setErrors({})
   }, [initial])
 
-  // Close dropdown when clicking outside
+  // closes dropdown when clicking outside
   useEffect(() => {
     const handler = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -32,6 +35,7 @@ function WalletForm({ initial, onSubmit, onCancel, isLoading }) {
     return () => document.removeEventListener('mousedown', handler)
   }, [])
 
+  // filters WALLET_OPTIONS by search text matching name or type
   const filtered = WALLET_OPTIONS.filter((w) =>
     w.name.toLowerCase().includes(search.toLowerCase()) ||
     w.type.toLowerCase().includes(search.toLowerCase())
@@ -39,6 +43,7 @@ function WalletForm({ initial, onSubmit, onCancel, isLoading }) {
 
   const selectedWallet = WALLET_OPTIONS.find((w) => w.id === form.walletId)
 
+  // sets the selected wallet id and closes the dropdown
   const handleSelect = (wallet) => {
     setForm((prev) => ({ ...prev, walletId: wallet.id }))
     setSearch(wallet.name)
@@ -46,12 +51,14 @@ function WalletForm({ initial, onSubmit, onCancel, isLoading }) {
     setErrors((prev) => ({ ...prev, walletId: '' }))
   }
 
+  // clears selection when user types in the search box
   const handleSearchChange = (e) => {
     setSearch(e.target.value)
     setForm((prev) => ({ ...prev, walletId: '' }))
     setOpen(true)
   }
 
+  // returns field errors, empty means valid
   const validate = () => {
     const e = {}
     if (!form.walletId) e.walletId = 'Please select a wallet or bank.'
@@ -60,6 +67,7 @@ function WalletForm({ initial, onSubmit, onCancel, isLoading }) {
     return e
   }
 
+  // calls onSubmit with data shaped for the wallets table
   const handleSubmit = (e) => {
     e.preventDefault()
     const validationErrors = validate()
@@ -78,7 +86,6 @@ function WalletForm({ initial, onSubmit, onCancel, isLoading }) {
   return (
     <form className="wallet-form" onSubmit={handleSubmit} noValidate>
 
-      {/* Searchable Wallet Dropdown */}
       <div className="wallet-form__field" ref={dropdownRef}>
         <label className="wallet-form__label">Select Wallet / Bank</label>
         <div className="wallet-form__dropdown">
@@ -129,7 +136,6 @@ function WalletForm({ initial, onSubmit, onCancel, isLoading }) {
         {errors.walletId && <span className="wallet-form__error">{errors.walletId}</span>}
       </div>
 
-      {/* Balance */}
       <div className="wallet-form__field">
         <label className="wallet-form__label">Current Balance</label>
         <input
@@ -140,6 +146,7 @@ function WalletForm({ initial, onSubmit, onCancel, isLoading }) {
           placeholder="0.00"
           value={form.balance}
           onChange={(e) => {
+            // strips non-numeric characters and prevents double decimal
             const val = e.target.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1')
             setForm((prev) => ({ ...prev, balance: val }))
             setErrors((prev) => ({ ...prev, balance: '' }))
@@ -148,7 +155,6 @@ function WalletForm({ initial, onSubmit, onCancel, isLoading }) {
         {errors.balance && <span className="wallet-form__error">{errors.balance}</span>}
       </div>
 
-      {/* Actions */}
       <div className="wallet-form__actions">
         <button type="button" className="wallet-form__cancel" onClick={onCancel}>
           Cancel

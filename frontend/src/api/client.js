@@ -1,5 +1,6 @@
 import axios from 'axios'
 
+// shared axios instance used by all api files
 const client = axios.create({
   baseURL: import.meta.env.VITE_API_URL ?? 'http://127.0.0.1:8000/api',
   headers: {
@@ -8,7 +9,7 @@ const client = axios.create({
   },
 })
 
-// Attach token from localStorage on every request
+// runs before every request, attaches the bearer token stored after login
 client.interceptors.request.use((config) => {
   const token = localStorage.getItem('claro_token')
   if (token) {
@@ -17,7 +18,7 @@ client.interceptors.request.use((config) => {
   return config
 })
 
-// On 401 — clear auth and redirect to login
+// runs after every response, redirects to login on 401
 client.interceptors.response.use(
   (response) => response,
   (error) => {

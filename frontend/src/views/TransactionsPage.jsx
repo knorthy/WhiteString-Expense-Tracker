@@ -17,6 +17,7 @@ const CATEGORY_OPTIONS = [
   'Shopping', 'Entertainment', 'Education', 'Other Expense',
 ]
 
+// protected view in App.jsx, calls getTransactions and getWallets on mount
 function TransactionsPage() {
   const wallets = useWalletStore((state) => state.wallets)
   const setWallets = useWalletStore((state) => state.setWallets)
@@ -30,12 +31,15 @@ function TransactionsPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [fetchLoading, setFetchLoading] = useState(true)
 
-  // Load transactions and refresh wallets on mount
+  // fetches transactions and wallets in parallel on mount
   useEffect(() => {
     const load = async () => {
       setFetchLoading(true)
       try {
-        const [txns, walletData] = await Promise.all([getTransactions(), getWallets()])
+        const [txns, walletData] = await Promise.all([
+          getTransactions(), // GET /api/transactions
+          getWallets(),      // GET /api/wallets
+        ])
         setTransactions(txns)
         setWallets(walletData)
       } catch (err) {
@@ -47,13 +51,19 @@ function TransactionsPage() {
     load()
   }, [])
 
+  // opens modal in create mode
   const openCreate = () => { setEditTarget(null); setModalOpen(true) }
+
+  // opens modal in edit mode, normalises date to YYYY-MM-DD for the date input
   const openEdit = (txn) => {
     setEditTarget({ ...txn, date: txn.date?.slice(0, 10) ?? '' })
     setModalOpen(true)
   }
+
   const closeModal = () => { setModalOpen(false); setEditTarget(null) }
 
+  // POST /api/transactions for create, PUT /api/transactions/:id for edit
+  // refreshes wallets after save so balance updates immediately in walletStore
   const handleSubmit = async (formData) => {
     setIsLoading(true)
     try {
@@ -66,7 +76,6 @@ function TransactionsPage() {
         setTransactions((prev) => [created, ...prev])
         toast.success('Transaction added successfully.')
       }
-      // Refresh wallets so balance updates instantly
       const walletData = await getWallets()
       setWallets(walletData)
       closeModal()
@@ -79,6 +88,7 @@ function TransactionsPage() {
     }
   }
 
+  // DELETE /api/transactions/:id, refreshes wallets after delete
   const handleDelete = async (id) => {
     try {
       await deleteTransaction(id)
@@ -92,6 +102,7 @@ function TransactionsPage() {
     }
   }
 
+  // filters transactions list in memory based on search text, type, and category
   const filtered = transactions.filter((t) => {
     const matchSearch =
       !search ||
@@ -107,7 +118,6 @@ function TransactionsPage() {
       <Sidebar />
 
       <main className="txn-main">
-        {/* Page Header */}
         <div className="txn-page-header">
           <div>
             <h1 className="txn-page-title">Transactions</h1>
@@ -115,7 +125,6 @@ function TransactionsPage() {
           </div>
         </div>
 
-        {/* Filters */}
         <div className="txn-filters">
           <div className="txn-filters__search-wrap">
             <svg className="txn-filters__search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -131,34 +140,26 @@ function TransactionsPage() {
             />
           </div>
 
-          <select
-            className="txn-filters__select"
-            value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value)}
-          >
+          <select className="txn-filters__select" value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}>
             {TYPE_OPTIONS.map((o) => (
               <option key={o} value={o}>{o === 'All' ? 'All Types' : o.charAt(0).toUpperCase() + o.slice(1)}</option>
             ))}
           </select>
 
-          <select
-            className="txn-filters__select"
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
-          >
+          <select className="txn-filters__select" value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
             {CATEGORY_OPTIONS.map((o) => (
               <option key={o} value={o}>{o === 'All' ? 'All Categories' : o}</option>
             ))}
           </select>
 
           <div className="txn-filters__actions">
+            {/* resets all three filter states */}
             <button className="txn-filters__clear" onClick={() => { setSearch(''); setTypeFilter('All'); setCategoryFilter('All') }}>
               Clear
             </button>
           </div>
         </div>
 
-        {/* Results */}
         <div className="txn-results">
           <div className="txn-results__header">
             <span className="txn-results__count">Showing {filtered.length} item(s)</span>
@@ -190,9 +191,7 @@ function TransactionsPage() {
                     <tr key={t.id}>
                       <td>{t.date?.slice(0, 10)}</td>
                       <td>
-                        <span className={`txn-badge txn-badge--${t.type}`}>
-                          {t.type}
-                        </span>
+                        <span className={`txn-badge txn-badge--${t.type}`}>{t.type}</span>
                       </td>
                       <td>{t.category}</td>
                       <td className="txn-table__desc">{t.description || '—'}</td>
@@ -212,7 +211,7 @@ function TransactionsPage() {
         </div>
       </main>
 
-      {/* Reusable Modal */}
+      {/* Modal renders TransactionForm for create and edit */}
       <Modal
         isOpen={modalOpen}
         onClose={closeModal}

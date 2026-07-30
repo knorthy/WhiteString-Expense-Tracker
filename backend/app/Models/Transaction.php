@@ -20,6 +20,8 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
+
+// maps to transactions table, used by TransactionController, TransactionService, TransactionRepository
 class Transaction extends Model
 {
     use HasFactory;
@@ -42,33 +44,37 @@ class Transaction extends Model
         ];
     }
 
+    // reads users table, used when accessing transaction owner
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
+    // reads wallets table, used when accessing the wallet linked to a transaction
     public function wallet(): BelongsTo
     {
         return $this->belongsTo(Wallet::class);
     }
 
-    // ── Scopes ────────────────────────────────────────────────
-
+    // scope: filters transactions table by type income, used in TransactionRepository
     public function scopeIncome(Builder $query): Builder
     {
         return $query->where('type', 'income');
     }
 
+    // scope: filters transactions table by type expense, used in TransactionRepository
     public function scopeExpense(Builder $query): Builder
     {
         return $query->where('type', 'expense');
     }
 
+    // scope: filters transactions table by category column, used in TransactionRepository
     public function scopeByCategory(Builder $query, string $category): Builder
     {
         return $query->where('category', $category);
     }
 
+    // scope: filters transactions table by date range, used in TransactionRepository and TransactionController
     public function scopeByDateRange(Builder $query, string $from, string $to): Builder
     {
         return $query->whereBetween('date', [$from, $to]);

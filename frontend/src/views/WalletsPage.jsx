@@ -10,11 +10,12 @@ import { getTransactions } from '../api/transactions'
 import { toast } from '../store/toastStore'
 import './WalletsPage.css'
 
-// 3-dot context menu per card
+// three dot context menu rendered on each wallet card
 function WalletMenu({ wallet, onAdjust, onDelete }) {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
 
+  // closes dropdown when clicking outside
   useEffect(() => {
     const handler = (e) => {
       if (ref.current && !ref.current.contains(e.target)) setOpen(false)
@@ -25,11 +26,7 @@ function WalletMenu({ wallet, onAdjust, onDelete }) {
 
   return (
     <div className="wallet-menu" ref={ref}>
-      <button
-        className="wallet-card__menu-btn"
-        onClick={() => setOpen((v) => !v)}
-        aria-label="Wallet options"
-      >
+      <button className="wallet-card__menu-btn" onClick={() => setOpen((v) => !v)} aria-label="Wallet options">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="12" cy="5"  r="1" fill="currentColor" />
           <circle cx="12" cy="12" r="1" fill="currentColor" />
@@ -39,20 +36,16 @@ function WalletMenu({ wallet, onAdjust, onDelete }) {
 
       {open && (
         <div className="wallet-menu__dropdown">
-          <button
-            className="wallet-menu__item"
-            onClick={() => { setOpen(false); onAdjust(wallet) }}
-          >
+          {/* opens adjust balance modal */}
+          <button className="wallet-menu__item" onClick={() => { setOpen(false); onAdjust(wallet) }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <path d="M12 20h9" />
               <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
             </svg>
             Adjust Balance
           </button>
-          <button
-            className="wallet-menu__item wallet-menu__item--danger"
-            onClick={() => { setOpen(false); onDelete(wallet.id) }}
-          >
+          {/* calls DELETE /api/wallets/:id */}
+          <button className="wallet-menu__item wallet-menu__item--danger" onClick={() => { setOpen(false); onDelete(wallet.id) }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="3 6 5 6 21 6" />
               <path d="M19 6l-1 14H6L5 6" />
@@ -67,11 +60,12 @@ function WalletMenu({ wallet, onAdjust, onDelete }) {
   )
 }
 
-// Balance-only form for adjust modal
+// form used inside adjust balance modal, calls PUT /api/wallets/:id via onSubmit
 function AdjustBalanceForm({ wallet, onSubmit, onCancel, isLoading }) {
   const [balance, setBalance] = useState(String(wallet?.balance ?? ''))
   const [error, setError] = useState('')
 
+  // resets balance input when target wallet changes
   useEffect(() => {
     setBalance(String(wallet?.balance ?? ''))
     setError('')
@@ -79,14 +73,8 @@ function AdjustBalanceForm({ wallet, onSubmit, onCancel, isLoading }) {
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    if (balance === '' || isNaN(balance)) {
-      setError('Enter a valid balance.')
-      return
-    }
-    if (parseFloat(balance) < 0) {
-      setError('Balance cannot be negative.')
-      return
-    }
+    if (balance === '' || isNaN(balance)) { setError('Enter a valid balance.'); return }
+    if (parseFloat(balance) < 0) { setError('Balance cannot be negative.'); return }
     onSubmit(parseFloat(balance))
   }
 
@@ -110,6 +98,7 @@ function AdjustBalanceForm({ wallet, onSubmit, onCancel, isLoading }) {
           placeholder="0.00"
           value={balance}
           onChange={(e) => {
+            // strips non-numeric characters and prevents double decimal
             const val = e.target.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1')
             setBalance(val)
             setError('')
@@ -128,6 +117,7 @@ function AdjustBalanceForm({ wallet, onSubmit, onCancel, isLoading }) {
   )
 }
 
+// protected view in App.jsx, calls getWallets and getTransactions on mount
 function WalletsPage() {
   const wallets = useWalletStore((state) => state.wallets)
   const setWallets = useWalletStore((state) => state.setWallets)
@@ -139,21 +129,20 @@ function WalletsPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [recentTxns, setRecentTxns] = useState([])
 
-  // Load wallets and recent transactions from API on mount
+  // fetches wallets and last 5 transactions on mount, attaches logos from WALLET_OPTIONS constant
   useEffect(() => {
     const load = async () => {
       try {
         const [walletData, txnData] = await Promise.all([
-          getWallets(),
-          getTransactions(),
+          getWallets(),      // GET /api/wallets
+          getTransactions(), // GET /api/transactions
         ])
-        // Attach logo from local constants since backend doesn't store images
         const enriched = walletData.map((w) => ({
           ...w,
           logo: WALLET_OPTIONS.find((o) => o.id === w.wallet_key)?.logo ?? null,
         }))
         setWallets(enriched)
-        setRecentTxns(txnData.slice(0, 5)) // show last 5
+        setRecentTxns(txnData.slice(0, 5))
       } catch (err) {
         console.error(err)
       }
@@ -161,6 +150,7 @@ function WalletsPage() {
     load()
   }, [])
 
+  // POST /api/wallets, attaches logo, updates walletStore
   const handleAdd = async (formData) => {
     setIsLoading(true)
     try {
@@ -180,6 +170,7 @@ function WalletsPage() {
     }
   }
 
+  // PUT /api/wallets/:id, updates balance in walletStore
   const handleAdjustBalance = async (newBalance) => {
     setIsLoading(true)
     try {
@@ -195,6 +186,7 @@ function WalletsPage() {
     }
   }
 
+  // DELETE /api/wallets/:id, removes wallet from walletStore
   const handleDelete = async (id) => {
     try {
       await deleteWallet(id)
@@ -218,16 +210,15 @@ function WalletsPage() {
           </div>
         </div>
 
-        {/* Top Row */}
         <div className="wallets-top-row">
+          {/* total balance summed from walletStore */}
           <div className="wallets-total">
             <div className="wallets-total__label">Total Balance</div>
-            <div className="wallets-total__amount">
-              {format(totalBalance)}
-            </div>
+            <div className="wallets-total__amount">{format(totalBalance)}</div>
             <p className="wallets-total__sub">Across {wallets.length} wallet(s)</p>
           </div>
 
+          {/* recent transactions from getTransactions, sliced to first 5 */}
           <div className="wallets-recent">
             <div className="wallets-recent__header">
               <h3 className="wallets-recent__title">Recent Transactions</h3>
@@ -240,9 +231,7 @@ function WalletsPage() {
                   {recentTxns.map((t) => (
                     <li key={t.id} className="wallets-recent__item">
                       <div className="wallets-recent__item-left">
-                        <span className={`wallets-recent__badge wallets-recent__badge--${t.type}`}>
-                          {t.type}
-                        </span>
+                        <span className={`wallets-recent__badge wallets-recent__badge--${t.type}`}>{t.type}</span>
                         <span className="wallets-recent__category">{t.category}</span>
                       </div>
                       <span className={`wallets-recent__amount wallets-recent__amount--${t.type}`}>
@@ -256,7 +245,6 @@ function WalletsPage() {
           </div>
         </div>
 
-        {/* Wallets Grid */}
         <div className="wallets-section">
           <div className="wallets-section__header">
             <h2 className="wallets-section__title">Your Wallets</h2>
@@ -276,20 +264,14 @@ function WalletsPage() {
                 <div key={w.id} className="wallet-card">
                   <div className="wallet-card__top">
                     <img src={w.logo} alt={w.name} className="wallet-card__logo" />
-                    <WalletMenu
-                      wallet={w}
-                      onAdjust={setAdjustTarget}
-                      onDelete={handleDelete}
-                    />
+                    <WalletMenu wallet={w} onAdjust={setAdjustTarget} onDelete={handleDelete} />
                   </div>
                   <div className="wallet-card__body">
                     <h3 className="wallet-card__name">{w.name}</h3>
                     <span className="wallet-card__type">{w.type}</span>
                   </div>
                   <div className="wallet-card__footer">
-                    <div className="wallet-card__balance">
-                      {format(w.balance)}
-                    </div>
+                    <div className="wallet-card__balance">{format(w.balance)}</div>
                   </div>
                 </div>
               ))}
@@ -298,33 +280,14 @@ function WalletsPage() {
         </div>
       </main>
 
-      {/* Add Wallet Modal */}
-      <Modal
-        isOpen={addModalOpen}
-        onClose={() => setAddModalOpen(false)}
-        title="Add wallet"
-        subtitle="Choose your bank or e-wallet and set the balance."
-      >
-        <WalletForm
-          onSubmit={handleAdd}
-          onCancel={() => setAddModalOpen(false)}
-          isLoading={isLoading}
-        />
+      {/* Modal renders WalletForm for adding a new wallet */}
+      <Modal isOpen={addModalOpen} onClose={() => setAddModalOpen(false)} title="Add wallet" subtitle="Choose your bank or e-wallet and set the balance.">
+        <WalletForm onSubmit={handleAdd} onCancel={() => setAddModalOpen(false)} isLoading={isLoading} />
       </Modal>
 
-      {/* Adjust Balance Modal */}
-      <Modal
-        isOpen={!!adjustTarget}
-        onClose={() => setAdjustTarget(null)}
-        title="Adjust Balance"
-        subtitle="Update the current balance for this wallet."
-      >
-        <AdjustBalanceForm
-          wallet={adjustTarget}
-          onSubmit={handleAdjustBalance}
-          onCancel={() => setAdjustTarget(null)}
-          isLoading={isLoading}
-        />
+      {/* Modal renders AdjustBalanceForm for updating wallet balance */}
+      <Modal isOpen={!!adjustTarget} onClose={() => setAdjustTarget(null)} title="Adjust Balance" subtitle="Update the current balance for this wallet.">
+        <AdjustBalanceForm wallet={adjustTarget} onSubmit={handleAdjustBalance} onCancel={() => setAdjustTarget(null)} isLoading={isLoading} />
       </Modal>
     </div>
   )

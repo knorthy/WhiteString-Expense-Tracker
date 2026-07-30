@@ -1,10 +1,8 @@
 import { Navigate } from 'react-router-dom'
 import useAuthStore from '../store/authStore'
 
-/**
- * Wraps any route that requires authentication.
- * If no user is in the store, redirects to /login.
- */
+// wraps private routes in App.jsx
+// redirects to /login if no user in store or no token in localStorage
 function ProtectedRoute({ children }) {
   const user = useAuthStore((state) => state.user)
   const token = localStorage.getItem('claro_token')

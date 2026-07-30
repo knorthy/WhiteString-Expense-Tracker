@@ -12,13 +12,12 @@ use Illuminate\Support\Facades\DB;
 
 class TransactionController extends Controller
 {
+    // TransactionService injected here to handle balance adjustments on create, update, delete
     public function __construct(
         private readonly TransactionService $service
     ) {}
 
-    /**
-     * GET /api/transactions
-     */
+    // GET /api/transactions, reads transactions table filtered by user, type, category, date range, called from transactions.js getTransactions
     public function index(Request $request): JsonResponse
     {
         $query = $request->user()->transactions()->orderBy('date', 'desc');
@@ -36,45 +35,35 @@ class TransactionController extends Controller
         return response()->json($query->get());
     }
 
-    /**
-     * GET /api/transactions/{id}
-     */
+    // GET /api/transactions/:id, reads single row from transactions table, called from transactions.js getTransaction
     public function show(Request $request, int $id): JsonResponse
     {
         $transaction = $request->user()->transactions()->findOrFail($id);
         return response()->json($transaction);
     }
 
-    /**
-     * POST /api/transactions
-     */
+    // POST /api/transactions, inserts row into transactions table and updates wallet balance, delegates to TransactionService, called from transactions.js createTransaction
     public function store(TransactionRequest $request): JsonResponse
     {
         $transaction = $this->service->create($request->user(), $request->validated());
         return response()->json($transaction, Response::HTTP_CREATED);
     }
 
-    /**
-     * PUT /api/transactions/{id}
-     */
+    // PUT /api/transactions/:id, updates row in transactions table and recalculates wallet balance, delegates to TransactionService, called from transactions.js updateTransaction
     public function update(TransactionRequest $request, int $id): JsonResponse
     {
         $transaction = $this->service->update($request->user(), $id, $request->validated());
         return response()->json($transaction);
     }
 
-    /**
-     * DELETE /api/transactions/{id}
-     */
+    // DELETE /api/transactions/:id, removes row from transactions table and reverses wallet balance, delegates to TransactionService, called from transactions.js deleteTransaction
     public function destroy(Request $request, int $id): JsonResponse
     {
         $this->service->delete($request->user(), $id);
         return response()->json(['message' => 'Transaction deleted.']);
     }
 
-    /**
-     * GET /api/transactions/summary
-     */
+    // GET /api/transactions/summary, reads transactions table and returns totals grouped by type and category, called from transactions.js getSummary
     public function summary(Request $request): JsonResponse
     {
         $userId = $request->user()->id;
@@ -112,9 +101,7 @@ class TransactionController extends Controller
         ]);
     }
 
-    /**
-     * GET /api/categories
-     */
+    // GET /api/categories, reads distinct category values from transactions table, called from transactions.js getCategories
     public function categories(Request $request): JsonResponse
     {
         $type  = $request->query('type');
