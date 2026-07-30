@@ -11,7 +11,7 @@ class WalletRequest extends FormRequest
         return true;
     }
 
-    public function rules(): array
+    public function rules(): array //make sure that the wallet is selected and such
     {
         return [
             'wallet_key' => ['required', 'string', 'max:50'],

@@ -11,15 +11,15 @@ class TransactionRequest extends FormRequest
         return true;
     }
 
-    public function rules(): array
+    public function rules(): array //make sure that there is a type, category and such
     {
         return [
             'type'        => ['required', 'in:income,expense'],
             'category'    => ['required', 'string', 'min:2', 'max:100'],
             'amount'      => ['required', 'numeric', 'min:0.01', 'max:99999999.99'],
             'description' => ['nullable', 'string', 'max:500'],
-            'date'        => ['required', 'date', 'before_or_equal:today'],
-            'wallet_id'   => ['nullable', 'integer', 'exists:wallets,id'],
+            'date'        => ['required', 'date', 'before_or_equal:today'], 
+            'wallet_id'   => ['nullable', 'integer', 'exists:wallets,id'], // wallet must be created 
         ];
     }
 

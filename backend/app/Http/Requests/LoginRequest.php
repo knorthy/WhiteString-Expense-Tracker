@@ -11,7 +11,7 @@ class LoginRequest extends FormRequest
         return true;
     }
 
-    public function rules(): array
+    public function rules(): array //make sure that the req has a valid email and pass
     {
         return [
             'email'    => ['required', 'email'],

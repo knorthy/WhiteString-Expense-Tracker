@@ -40,7 +40,7 @@ const SECTIONS = [
 const INCOME_CATEGORIES = ['Salary', 'Freelance', 'Business', 'Investment', 'Gift', 'Other Income']
 const EXPENSE_CATEGORIES = ['Food', 'Transport', 'Rent', 'Utilities', 'Healthcare', 'Shopping', 'Entertainment', 'Education', 'Other Expense']
 
-// ── Section: General ──────────────────────────────────────
+// general
 function GeneralSection() {
   const user = useAuthStore((state) => state.user)
   const setUser = useAuthStore((state) => state.setUser)
@@ -60,9 +60,9 @@ function GeneralSection() {
     if (!file) return
     const reader = new FileReader()
     reader.onload = (ev) => {
-      const url = ev.target.result
+      const url = ev.target.result // convert img to base64
       setAvatarUrl(url)
-      setAvatar(url)
+      setAvatar(url) // save authstore
       toast.success('Avatar updated.')
     }
     reader.readAsDataURL(file)
@@ -160,7 +160,7 @@ function GeneralSection() {
   )
 }
 
-// ── Section: Account Security ─────────────────────────────
+// acc security
 function SecuritySection() {
   const [form, setForm] = useState({ current_password: '', password: '', password_confirmation: '' })
   const [error, setError] = useState('')
@@ -213,12 +213,12 @@ function SecuritySection() {
   )
 }
 
-// ── Section: Privacy + Export ─────────────────────────────
+// privacy
 function PrivacySection() {
   const [analyticsEnabled, setAnalyticsEnabled] = useState(true)
   const [deleteConfirm, setDeleteConfirm] = useState(false)
 
-  // Export state
+  // Export CSV state 
   const [exportType, setExportType] = useState('all')       // all | income | expense | category
   const [exportCategory, setExportCategory] = useState('')
   const [exportDateFrom, setExportDateFrom] = useState('')
@@ -261,7 +261,7 @@ function PrivacySection() {
       if (exportDateFrom) filters.date_from = exportDateFrom
       if (exportDateTo) filters.date_to = exportDateTo
 
-      const data = await getTransactions(filters)
+      const data = await getTransactions(filters) //get the api for transaction with the selected filters
 
       if (data.length === 0) {
         toast.error('No transactions found for the selected filters.')
@@ -279,6 +279,7 @@ function PrivacySection() {
         `"${(t.description || '').replace(/"/g, '""')}"`,
       ])
 
+      //creates the temp download link
       const csv = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n')
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
       const url = URL.createObjectURL(blob)
@@ -419,7 +420,7 @@ function PrivacySection() {
   )
 }
 
-// ── Main SettingsModal ────────────────────────────────────
+// settings modal
 function SettingsModal({ isOpen, onClose }) {
   const [activeSection, setActiveSection] = useState('general')
 

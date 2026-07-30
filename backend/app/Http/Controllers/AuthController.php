@@ -22,7 +22,7 @@ class AuthController extends Controller
             'password' => $request->password,
         ]);
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+        $token = $user->createToken('auth_token')->plainTextToken; //for sanctum
 
         // logs the register action into user_activity_logs table
         UserActivityLog::create([

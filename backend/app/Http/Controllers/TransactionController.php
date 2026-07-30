@@ -45,7 +45,7 @@ class TransactionController extends Controller
     // POST /api/transactions, inserts row into transactions table and updates wallet balance, delegates to TransactionService, called from transactions.js createTransaction
     public function store(TransactionRequest $request): JsonResponse
     {
-        $transaction = $this->service->create($request->user(), $request->validated());
+        $transaction = $this->service->create($request->user(), $request->validated()); //insert rows and adjust the wallet balance
         return response()->json($transaction, Response::HTTP_CREATED);
     }
 
@@ -71,20 +71,20 @@ class TransactionController extends Controller
         $totals = Transaction::where('user_id', $userId)
             ->select('type', DB::raw('SUM(amount) as total'))
             ->groupBy('type')
-            ->pluck('total', 'type');
+            ->pluck('total', 'type'); // query group by type
 
         $totalIncome   = (float) ($totals['income']  ?? 0);
-        $totalExpenses = (float) ($totals['expense'] ?? 0);
+        $totalExpenses = (float) ($totals['expense'] ?? 0); //extract income/expense total
 
         $byCategory = Transaction::where('user_id', $userId)
             ->select('type', 'category', DB::raw('SUM(amount) as total'))
             ->groupBy('type', 'category')
-            ->get();
+            ->get(); //sum query but grouped by both type and category
 
         $incomeByCategory  = [];
         $expenseByCategory = [];
 
-        foreach ($byCategory as $row) {
+        foreach ($byCategory as $row) { // split result forn income/expense
             if ($row->type === 'income') {
                 $incomeByCategory[$row->category] = (float) $row->total;
             } else {
@@ -92,7 +92,7 @@ class TransactionController extends Controller
             }
         }
 
-        return response()->json([
+        return response()->json([ //reutrns calculated values
             'total_income'         => $totalIncome,
             'total_expenses'       => $totalExpenses,
             'net_revenue'          => $totalIncome - $totalExpenses,

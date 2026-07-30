@@ -11,7 +11,7 @@ class RegisterRequest extends FormRequest
         return true;
     }
 
-    public function rules(): array
+    public function rules(): array //same as logreq but with rules (regex)
     {
         return [
             'name'     => ['required', 'string', 'min:2', 'max:100', 'regex:/^[\pL\s\'\-\.]+$/u'],

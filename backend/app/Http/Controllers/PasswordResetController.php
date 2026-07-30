@@ -12,14 +12,13 @@ use Illuminate\Support\Facades\Mail;
 
 class PasswordResetController extends Controller
 {
-    // POST /api/forgot-password, inserts OTP into password_reset_codes table, sends email via PasswordResetCodeMail, called from auth.js forgotPassword
+    //first step
     public function forgotPassword(Request $request): JsonResponse
     {
-        $request->validate(['email' => ['required', 'email']]);
+        $request->validate(['email' => ['required', 'email']]); //check if email is present
 
-        $user = User::where('email', $request->email)->first();
+        $user = User::where('email', $request->email)->first(); //search user with the same email from the table
 
-        // always returns success even if email not found to prevent enumeration
         if (!$user) {
             return response()->json(['message' => 'If that email exists, a code has been sent.']);
         }
@@ -44,14 +43,16 @@ class PasswordResetController extends Controller
         return response()->json(['message' => 'If that email exists, a code has been sent.']);
     }
 
-    // POST /api/verify-reset-code, reads password_reset_codes table to validate OTP without consuming it, called from auth.js verifyResetCode
+
+    // checks the validity of the code after getting it from mailtrap
     public function verifyResetCode(Request $request): JsonResponse
     {
-        $request->validate([
+        $request->validate([ // check if theres an email and pass
             'email' => ['required', 'email'],
             'code'  => ['required', 'string', 'size:6'],
         ]);
 
+        //check if the entered code is similar from the table
         $record = DB::table('password_reset_codes')
             ->where('email', $request->email)
             ->where('code', $request->code)
@@ -69,7 +70,7 @@ class PasswordResetController extends Controller
         return response()->json(['valid' => true]);
     }
 
-    // POST /api/reset-password, updates password column in users table, deletes OTP row from password_reset_codes, called from auth.js resetPassword
+    // where the user enters their new pass and comfirms it
     public function resetPassword(Request $request): JsonResponse
     {
         $request->validate([
