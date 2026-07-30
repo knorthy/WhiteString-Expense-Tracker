@@ -77,7 +77,12 @@ const CardSwap = ({
       if (order.current.length < 2) return;
       const [front, ...rest] = order.current;
       const elFront = refs[front].current;
-      const tl = gsap.timeline();
+      const tl = gsap.timeline({
+        onComplete: () => {
+          order.current = [...rest, front];
+          intervalRef.current = window.setTimeout(swap, delay);
+        }
+      });
       tlRef.current = tl;
 
       tl.to(elFront, { y: '+=500', duration: config.durDrop, ease: config.ease });
@@ -102,32 +107,31 @@ const CardSwap = ({
         { x: backSlot.x, y: backSlot.y, z: backSlot.z, duration: config.durReturn, ease: config.ease },
         'return'
       );
-      tl.call(() => { order.current = [...rest, front]; });
     };
 
+    intervalRef.current = window.setTimeout(swap, delay);
     swap();
-    intervalRef.current = window.setInterval(swap, delay);
 
     if (pauseOnHover) {
       const node = container.current;
       const pause = () => {
         tlRef.current?.pause();
-        clearInterval(intervalRef.current);
+        clearTimeout(intervalRef.current);
       };
       const resume = () => {
         tlRef.current?.play();
-        intervalRef.current = window.setInterval(swap, delay);
+        intervalRef.current = window.setTimeout(swap, delay);
       };
       node.addEventListener('mouseenter', pause);
       node.addEventListener('mouseleave', resume);
       return () => {
         node.removeEventListener('mouseenter', pause);
         node.removeEventListener('mouseleave', resume);
-        clearInterval(intervalRef.current);
+        clearTimeout(intervalRef.current);
       };
     }
 
-    return () => clearInterval(intervalRef.current);
+    return () => clearTimeout(intervalRef.current);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cardDistance, verticalDistance, delay, pauseOnHover, skewAmount, easing]);
 
