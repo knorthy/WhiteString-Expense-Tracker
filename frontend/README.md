@@ -279,4 +279,3 @@ npm install
 npm run dev
 ```
 
-Set `VITE_API_URL=http://127.0.0.1:8000/api` in `frontend/.env` to connect the frontend to the backend.
