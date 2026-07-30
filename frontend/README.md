@@ -260,6 +260,57 @@ frontend/
 
 ---
 
+## API Routes
+
+All routes are defined in `backend/routes/api.php` and are prefixed with `/api`.
+
+---
+
+### Public Routes
+
+These routes do not require authentication. They are accessible without a token because the user either does not have an account yet or cannot log in to get one.
+
+| Method | Endpoint | Controller | Description |
+|--------|----------|------------|-------------|
+| POST | `/api/register` | AuthController@register | Creates a new user account and returns a token |
+| POST | `/api/login` | AuthController@login | Authenticates the user and returns a token |
+| POST | `/api/forgot-password` | PasswordResetController@forgotPassword | Generates a 6-digit OTP and sends it to the user's email |
+| POST | `/api/verify-reset-code` | PasswordResetController@verifyResetCode | Checks if the OTP is valid without consuming it |
+| POST | `/api/reset-password` | PasswordResetController@resetPassword | Verifies the OTP and updates the user's password |
+
+---
+
+### Private Routes
+
+These routes require a valid Sanctum bearer token in the `Authorization` header. Laravel checks the token against the `personal_access_tokens` table on every request. If the token is missing or invalid a 401 is returned and the frontend redirects to login.
+
+| Method | Endpoint | Controller | Description |
+|--------|----------|------------|-------------|
+| POST | `/api/logout` | AuthController@logout | Deletes the current token from the database |
+| GET | `/api/user` | AuthController@me | Returns the currently authenticated user |
+| GET | `/api/transactions` | TransactionController@index | Returns all transactions for the authenticated user with optional filters |
+| POST | `/api/transactions` | TransactionController@store | Creates a transaction and adjusts the linked wallet balance |
+| GET | `/api/transactions/{id}` | TransactionController@show | Returns a single transaction |
+| PUT | `/api/transactions/{id}` | TransactionController@update | Updates a transaction and recalculates the wallet balance |
+| DELETE | `/api/transactions/{id}` | TransactionController@destroy | Deletes a transaction and reverses the wallet balance |
+| GET | `/api/transactions/summary` | TransactionController@summary | Returns total income, total expenses, and net revenue |
+| GET | `/api/categories` | TransactionController@categories | Returns distinct category values from the transactions table |
+| GET | `/api/wallets` | WalletController@index | Returns all wallets for the authenticated user |
+| POST | `/api/wallets` | WalletController@store | Creates a new wallet |
+| GET | `/api/wallets/{id}` | WalletController@show | Returns a single wallet |
+| PUT | `/api/wallets/{id}` | WalletController@update | Updates the wallet balance |
+| DELETE | `/api/wallets/{id}` | WalletController@destroy | Deletes a wallet |
+
+---
+
+### Why the split
+
+Public routes are the entry points into the system. The user has no token yet so they cannot be behind authentication — if they were, a new user could never register and a locked-out user could never reset their password.
+
+Private routes contain data that belongs to a specific user. Without authentication, anyone could call these endpoints and read or modify another user's transactions and wallets. Sanctum ensures every request to these routes is tied to a verified user identity.
+
+---
+
 ## Local Setup
 
 **Backend**
