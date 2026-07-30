@@ -4,7 +4,7 @@ Claro is a full-stack personal finance tracker that helps users record, organize
 
 > *"Claro. Because your finances should be too."*
 
-**Live app:** [inextracker-119a.onrender.com](https://inextracker-119a.onrender.com)
+**Live demo (walkthrough):** [Supademo](https://app.supademo.com/demo/cms6531hp05a2100j3ck1kx07?utm_source=link)
 
 ---
 
@@ -63,7 +63,7 @@ Claro was built for people tired of guessing where their money went. Instead of 
 | **Laravel 13** (PHP 8.3) | Core backend framework, MVC architecture |
 | **Laravel Sanctum** | Token-based API authentication |
 | **Eloquent ORM** | Database modeling and relationships |
-| **MySQL / SQLite** | Relational database (SQLite used in production deployment) |
+| **MySQL** | Relational database |
 | **Repository Pattern** | Separates database/query logic from controllers for cleaner, testable code |
 | **Pest / PHPUnit** | Backend testing |
 | **Laravel Pint** | Code style enforcement (PSR standards) |
@@ -86,12 +86,6 @@ Claro was built for people tired of guessing where their money went. Instead of 
 - **Decoupled SPA + REST API** — the frontend (`frontend/`) and backend (`backend/`) are fully separate projects within a single repository, communicating over a JSON REST API rather than server-rendered views.
 - **Repository Pattern** on the backend: Controller → Repository → Model, keeping business logic out of controllers.
 - **RESTful routing** (`apiResource`) for transactions and wallets, with dedicated endpoints for auth, password reset, and dashboard summary data.
-
-### Deployment
-| Service | Purpose |
-|---|---|
-| **Render** | Hosting for both backend (PHP web service) and frontend (static site) |
-| SQLite | Production database |
 
 ---
 
@@ -118,8 +112,6 @@ WhiteString-Expense-Tracker/
 │       ├── store/             # Zustand stores
 │       ├── api/              # Axios API layer
 │       └── utils/
-│
-└── render.yaml                # Deployment configuration
 ```
 
 ---
@@ -167,7 +159,3 @@ Set `VITE_API_URL` in the frontend `.env` to point to your local backend (e.g. `
 
 ---
 
-## Author
-
-Built by Tiffany "North" — OJT Intern, GoodStrings Inc. (WhiteStrings)
-GitHub: [github.com/knorthy](https://github.com/knorthy)
