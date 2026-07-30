@@ -10,6 +10,7 @@ import { getWallets } from '../api/wallets'
 import { WALLET_OPTIONS } from '../constants/wallets'
 import './DashboardPage.css'
 
+// summary card shown three times on dashboard for balance, income, expenses
 function SummaryCard({ label, value, type, icon }) {
   return (
     <div className={`summary-card summary-card--${type}`}>
@@ -22,6 +23,8 @@ function SummaryCard({ label, value, type, icon }) {
   )
 }
 
+// main dashboard view, protected by ProtectedRoute in App.jsx
+// calls getSummary, getTransactions, getWallets on mount and on date filter apply
 function DashboardPage() {
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
@@ -31,6 +34,8 @@ function DashboardPage() {
     net_revenue: 0,
   })
   const [transactions, setTransactions] = useState([])
+
+  // reads first name from authStore for welcome message
   const firstName = useAuthStore((state) =>
     state.user?.name ? state.user.name.split(' ')[0] : 'there'
   )
@@ -39,12 +44,13 @@ function DashboardPage() {
   const format = useCurrencyStore((state) => state.format)
   const totalBalance = wallets.reduce((sum, w) => sum + (parseFloat(w.balance) || 0), 0)
 
+  // fetches summary, wallets, and transactions in parallel, attaches logos from WALLET_OPTIONS constant
   const loadData = useCallback(async (filters = {}) => {
     try {
       const [summaryData, walletData, txnData] = await Promise.all([
-        getSummary(filters),
-        getWallets(),
-        getTransactions(filters),
+        getSummary(filters),      // GET /api/transactions/summary
+        getWallets(),             // GET /api/wallets
+        getTransactions(filters), // GET /api/transactions
       ])
       setSummary(summaryData)
       setTransactions(txnData)
@@ -58,14 +64,17 @@ function DashboardPage() {
     }
   }, [setWallets])
 
+  // loads data on mount with no filters
   useEffect(() => {
     loadData()
   }, [loadData])
 
+  // re-fetches data with date range when Apply is clicked
   const handleApply = () => {
     if (dateFrom && dateTo) loadData({ date_from: dateFrom, date_to: dateTo })
   }
 
+  // clears date inputs and re-fetches with no filters
   const handleClear = () => {
     setDateFrom('')
     setDateTo('')
@@ -78,14 +87,12 @@ function DashboardPage() {
         <Sidebar />
 
         <main className="dashboard-main">
-          {/* Header */}
           <div className="dashboard-header">
             <div>
               <h1 className="dashboard-header__title">Dashboard</h1>
             </div>
           </div>
 
-          {/* Welcome */}
           <div className="dashboard-welcome">
             <h2 className="dashboard-welcome__title">Welcome back, {firstName}!</h2>
             <p className="dashboard-welcome__sub">
@@ -93,7 +100,7 @@ function DashboardPage() {
             </p>
           </div>
 
-          {/* Date Range Filter */}
+          {/* date range filter, triggers loadData with date_from and date_to params */}
           <div className="date-filter">
             <p className="date-filter__label">Date Range</p>
             <div className="date-filter__row">
@@ -136,7 +143,7 @@ function DashboardPage() {
             </div>
           </div>
 
-          {/* Summary Cards */}
+          {/* summary cards read from getSummary response and walletStore totalBalance */}
           <div className="summary-cards">
             <SummaryCard
               label="Current Balance"
@@ -173,7 +180,7 @@ function DashboardPage() {
             />
           </div>
 
-          {/* Charts Row */}
+          {/* charts receive transactions array from getTransactions response */}
           <div className="charts-row">
             <div className="chart-card chart-card--wide">
               <h3 className="chart-card__title">Income &amp; Expenses</h3>

@@ -20,9 +20,10 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
+
+// maps to users table, used by AuthController, TransactionService, WalletController
 class User extends Authenticatable
 {
-    /** @use HasFactory<UserFactory> */
     use HasApiTokens, HasFactory, Notifiable;
 
     protected $fillable = [
@@ -31,6 +32,7 @@ class User extends Authenticatable
         'password',
     ];
 
+    // hides password and remember_token from API responses
     protected $hidden = [
         'password',
         'remember_token',
@@ -44,11 +46,13 @@ class User extends Authenticatable
         ];
     }
 
+    // reads transactions table filtered by user_id, used in TransactionController and TransactionService
     public function transactions(): HasMany
     {
         return $this->hasMany(Transaction::class);
     }
 
+    // reads wallets table filtered by user_id, used in WalletController and TransactionService
     public function wallets(): HasMany
     {
         return $this->hasMany(Wallet::class);

@@ -8,16 +8,11 @@ use Illuminate\Support\Facades\DB;
 
 class TransactionService
 {
-    /**
-     * Create a transaction and adjust the wallet balance.
-     *
-     * @param  User  $user
-     * @param  array<string, mixed>  $data
-     */
+    // called by TransactionController store, inserts row into transactions table and adds or subtracts from wallet balance
     public function create(User $user, array $data): Transaction
     {
         return DB::transaction(function () use ($user, $data) {
-            // Check sufficient balance for expense transactions
+            // reads wallets table to check if expense amount exceeds current balance
             if ($data['type'] === 'expense' && !empty($data['wallet_id'])) {
                 $wallet = $user->wallets()->findOrFail($data['wallet_id']);
                 if ((float) $wallet->balance < (float) $data['amount']) {
@@ -32,33 +27,29 @@ class TransactionService
             }
 
             $transaction = $user->transactions()->create($data);
+
+            // adjusts balance column in wallets table after inserting transaction
             $this->adjustWalletBalance($user, $data['wallet_id'] ?? null, $data['type'], (float) $data['amount'], 'add');
 
             return $transaction;
         });
     }
 
-    /**
-     * Update a transaction and recalculate wallet balance.
-     *
-     * @param  User  $user
-     * @param  int  $id
-     * @param  array<string, mixed>  $data
-     */
+    // called by TransactionController update, updates row in transactions table and recalculates wallet balance
     public function update(User $user, int $id, array $data): Transaction
     {
         return DB::transaction(function () use ($user, $id, $data) {
             $transaction = $user->transactions()->findOrFail($id);
 
-            // Reverse the old effect first so we can re-check balance accurately
+            // reverses old transaction effect on wallet before applying new one
             $this->adjustWalletBalance($user, $transaction->wallet_id, $transaction->type, (float) $transaction->amount, 'reverse');
 
-            // Check balance for expense after reversing old effect
+            // re-checks balance after reversal before committing new expense amount
             if ($data['type'] === 'expense' && !empty($data['wallet_id'])) {
                 $wallet = $user->wallets()->findOrFail($data['wallet_id']);
                 $walletAfterReversal = (float) $wallet->fresh()->balance;
                 if ($walletAfterReversal < (float) $data['amount']) {
-                    // Re-apply the original to keep data consistent
+                    // re-applies old amount to keep wallets table consistent on failure
                     $this->adjustWalletBalance($user, $transaction->wallet_id, $transaction->type, (float) $transaction->amount, 'add');
                     throw new \Illuminate\Validation\ValidationException(
                         \Illuminate\Support\Facades\Validator::make([], []),
@@ -71,39 +62,29 @@ class TransactionService
             }
 
             $transaction->update($data);
+
+            // applies new transaction effect on wallet balance
             $this->adjustWalletBalance($user, $data['wallet_id'] ?? null, $data['type'], (float) $data['amount'], 'add');
 
             return $transaction->fresh();
         });
     }
 
-    /**
-     * Delete a transaction and reverse the wallet balance.
-     *
-     * @param  User  $user
-     * @param  int  $id
-     */
+    // called by TransactionController destroy, removes row from transactions table and reverses wallet balance
     public function delete(User $user, int $id): void
     {
         DB::transaction(function () use ($user, $id) {
             $transaction = $user->transactions()->findOrFail($id);
 
-            // Reverse the effect on the wallet
+            // reverses the transaction effect on wallets table before deleting
             $this->adjustWalletBalance($user, $transaction->wallet_id, $transaction->type, (float) $transaction->amount, 'reverse');
 
             $transaction->delete();
         });
     }
 
-    /**
-     * Adjust a wallet's balance based on transaction type and action.
-     *
-     * @param  User  $user
-     * @param  int|null  $walletId
-     * @param  string  $type  'income' or 'expense'
-     * @param  float  $amount
-     * @param  string  $action  'add' or 'reverse'
-     */
+    // updates balance column in wallets table, used by create, update, delete above
+    // income add = +amount, expense add = -amount, income reverse = -amount, expense reverse = +amount
     private function adjustWalletBalance(User $user, ?int $walletId, string $type, float $amount, string $action): void
     {
         if (!$walletId) {
@@ -116,10 +97,6 @@ class TransactionService
             return;
         }
 
-        // income 'add'     → +amount
-        // expense 'add'    → -amount
-        // income 'reverse' → -amount
-        // expense 'reverse'→ +amount
         $isIncome  = $type === 'income';
         $isAdd     = $action === 'add';
         $delta     = ($isIncome === $isAdd) ? $amount : -$amount;

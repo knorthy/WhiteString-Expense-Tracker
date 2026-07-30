@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { formatPHP } from '../utils/currency'
 import './TransactionForm.css'
 
+// category lists shown in the category dropdown based on selected type
 const INCOME_CATEGORIES = [
   'Salary', 'Freelance', 'Business', 'Investment', 'Gift', 'Other Income',
 ]
@@ -20,37 +21,35 @@ const DEFAULT_FORM = {
   walletId: '',
 }
 
-/**
- * TransactionForm — used inside Modal for create and edit
- *
- * Props:
- *   initial    — object, pre-filled values for edit mode (optional)
- *   wallets    — array of user's wallets [{ id, name, logo, type }]
- *   onSubmit   — function(formData)
- *   onCancel   — function
- *   isLoading  — boolean
- */
+// form used inside Modal in TransactionsPage.jsx for create and edit
+// initial prop is pre-filled for edit mode, empty for create
 function TransactionForm({ initial, wallets = [], onSubmit, onCancel, isLoading }) {
   const [form, setForm] = useState(initial || DEFAULT_FORM)
   const [errors, setErrors] = useState({})
 
+  // reset form when initial changes, handles switching between create and edit
   useEffect(() => {
     setForm(initial || DEFAULT_FORM)
     setErrors({})
   }, [initial])
 
+  // switches category list when type changes
   const categories = form.type === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES
 
+  // updates form field and clears its error on change
   const handleChange = (e) => {
     const { name, value } = e.target
     setForm((prev) => ({
       ...prev,
       [name]: value,
+      // reset category when type changes since lists are different
       ...(name === 'type' ? { category: '' } : {}),
     }))
     setErrors((prev) => ({ ...prev, [name]: '' }))
   }
 
+  // returns an object of field errors, empty means valid
+  // checks wallet balance for expense type before allowing submit
   const validate = () => {
     const e = {}
     if (!form.type) e.type = 'Type is required.'
@@ -58,7 +57,7 @@ function TransactionForm({ initial, wallets = [], onSubmit, onCancel, isLoading 
     if (!form.amount || isNaN(form.amount) || Number(form.amount) <= 0)
       e.amount = 'Enter a valid amount greater than 0.'
 
-    // Insufficient balance check — only for expense transactions
+    // checks selected wallet balance only for expense transactions
     if (form.type === 'expense' && form.walletId && form.amount) {
       const wallet = wallets.find((w) => String(w.id) === String(form.walletId))
       if (wallet && parseFloat(form.amount) > parseFloat(wallet.balance)) {
@@ -75,6 +74,7 @@ function TransactionForm({ initial, wallets = [], onSubmit, onCancel, isLoading 
     return e
   }
 
+  // runs validation then calls onSubmit with data shaped for the Laravel API
   const handleSubmit = (e) => {
     e.preventDefault()
     const validationErrors = validate()
@@ -82,7 +82,7 @@ function TransactionForm({ initial, wallets = [], onSubmit, onCancel, isLoading 
       setErrors(validationErrors)
       return
     }
-    // Map walletId → wallet_id for the Laravel API
+    // renames walletId to wallet_id to match the transactions table column
     const { walletId, ...rest } = form
     onSubmit({
       ...rest,
@@ -96,7 +96,6 @@ function TransactionForm({ initial, wallets = [], onSubmit, onCancel, isLoading 
   return (
     <form className="txn-form" onSubmit={handleSubmit} noValidate>
 
-      {/* Type */}
       <div className="txn-form__field">
         <label className="txn-form__label">Type</label>
         <select
@@ -111,7 +110,6 @@ function TransactionForm({ initial, wallets = [], onSubmit, onCancel, isLoading 
         {errors.type && <span className="txn-form__error">{errors.type}</span>}
       </div>
 
-      {/* Category */}
       <div className="txn-form__field">
         <label className="txn-form__label">Category</label>
         <select
@@ -128,7 +126,6 @@ function TransactionForm({ initial, wallets = [], onSubmit, onCancel, isLoading 
         {errors.category && <span className="txn-form__error">{errors.category}</span>}
       </div>
 
-      {/* Wallet */}
       <div className="txn-form__field">
         <label className="txn-form__label">Wallet / Bank</label>
         {wallets.length === 0 ? (
@@ -156,11 +153,11 @@ function TransactionForm({ initial, wallets = [], onSubmit, onCancel, isLoading 
         {errors.walletId && <span className="txn-form__error">{errors.walletId}</span>}
       </div>
 
-      {/* Amount + Date */}
       <div className="txn-form__row">
         <div className="txn-form__field">
           <label className="txn-form__label">
             Amount
+            {/* shows available balance hint for expense type */}
             {form.type === 'expense' && selectedWallet && (
               <span className="txn-form__balance-hint">
                 Available: {formatPHP(selectedWallet.balance)}
@@ -176,7 +173,7 @@ function TransactionForm({ initial, wallets = [], onSubmit, onCancel, isLoading 
             placeholder="0.00"
             value={form.amount}
             onChange={(e) => {
-              // Strip anything that isn't a digit or single decimal point
+              // strips non-numeric characters and prevents double decimal
               const val = e.target.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1')
               handleChange({ target: { name: 'amount', value: val } })
             }}
@@ -198,7 +195,6 @@ function TransactionForm({ initial, wallets = [], onSubmit, onCancel, isLoading 
         </div>
       </div>
 
-      {/* Description */}
       <div className="txn-form__field">
         <label className="txn-form__label">
           Description <span className="txn-form__optional">(optional)</span>
@@ -212,12 +208,12 @@ function TransactionForm({ initial, wallets = [], onSubmit, onCancel, isLoading 
           value={form.description}
           onChange={handleChange}
         />
+        {/* shows character count warning when approaching limit */}
         {form.description?.length > 400 && (
           <span className="txn-form__char-count">{form.description.length}/500</span>
         )}
       </div>
 
-      {/* Actions */}
       <div className="txn-form__actions">
         <button type="button" className="txn-form__cancel" onClick={onCancel}>Cancel</button>
         <button type="submit" className="txn-form__save" disabled={isLoading}>

@@ -1,18 +1,12 @@
 import { useEffect } from 'react'
 import './Modal.css'
 
-/**
- * Reusable Modal component
- *
- * Props:
- *   isOpen   — boolean, controls visibility
- *   onClose  — function, called when backdrop or X is clicked
- *   title    — string, modal heading
- *   subtitle — string (optional), small text below title
- *   children — modal body content
- */
+// reusable modal wrapper used in TransactionsPage.jsx, WalletsPage.jsx, CategoriesPage.jsx
+// closes on Escape key or backdrop click
+// locks body scroll while open
 function Modal({ isOpen, onClose, title, subtitle, children }) {
-  // Close on Escape key
+
+  // close on Escape key
   useEffect(() => {
     if (!isOpen) return
     const handleKey = (e) => {
@@ -22,7 +16,7 @@ function Modal({ isOpen, onClose, title, subtitle, children }) {
     return () => document.removeEventListener('keydown', handleKey)
   }, [isOpen, onClose])
 
-  // Prevent background scroll when open
+  // lock body scroll while modal is open
   useEffect(() => {
     document.body.style.overflow = isOpen ? 'hidden' : ''
     return () => { document.body.style.overflow = '' }
@@ -33,7 +27,6 @@ function Modal({ isOpen, onClose, title, subtitle, children }) {
   return (
     <div className="modal-backdrop" onClick={onClose} role="dialog" aria-modal="true">
       <div className="modal" onClick={(e) => e.stopPropagation()}>
-        {/* Header */}
         <div className="modal__header">
           <div>
             <h2 className="modal__title">{title}</h2>
@@ -45,8 +38,6 @@ function Modal({ isOpen, onClose, title, subtitle, children }) {
             </svg>
           </button>
         </div>
-
-        {/* Body */}
         <div className="modal__body">
           {children}
         </div>

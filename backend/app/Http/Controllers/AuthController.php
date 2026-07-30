@@ -13,9 +13,7 @@ use Illuminate\Http\Request;
 
 class AuthController extends Controller
 {
-    /**
-     * POST /api/register
-     */
+    // POST /api/register, inserts row into users table, creates token in personal_access_tokens, called from auth.js register
     public function register(RegisterRequest $request): JsonResponse
     {
         $user = User::create([
@@ -26,6 +24,7 @@ class AuthController extends Controller
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
+        // logs the register action into user_activity_logs table
         UserActivityLog::create([
             'user_id'    => $user->id,
             'action'     => 'register',
@@ -39,9 +38,7 @@ class AuthController extends Controller
         ], Response::HTTP_CREATED);
     }
 
-    /**
-     * POST /api/login
-     */
+    // POST /api/login, reads users table to verify credentials, creates token, called from auth.js login
     public function login(LoginRequest $request): JsonResponse
     {
         if (!Auth::attempt($request->only('email', 'password'))) {
@@ -53,6 +50,7 @@ class AuthController extends Controller
         $user  = Auth::user();
         $token = $user->createToken('auth_token')->plainTextToken;
 
+        // logs the login action into user_activity_logs table
         UserActivityLog::create([
             'user_id'    => $user->id,
             'action'     => 'login',
@@ -66,15 +64,14 @@ class AuthController extends Controller
         ]);
     }
 
-    /**
-     * POST /api/logout
-     */
+    // POST /api/logout, deletes current token from personal_access_tokens, called from auth.js logout
     public function logout(Request $request): JsonResponse
     {
         $userId = $request->user()->id;
 
         $request->user()->currentAccessToken()->delete();
 
+        // logs the logout action into user_activity_logs table
         UserActivityLog::create([
             'user_id'    => $userId,
             'action'     => 'logout',
@@ -85,9 +82,7 @@ class AuthController extends Controller
         return response()->json(['message' => 'Logged out.']);
     }
 
-    /**
-     * GET /api/user
-     */
+    // GET /api/user, reads current user row from users table, called from auth.js getMe
     public function me(Request $request): JsonResponse
     {
         return response()->json($request->user());
